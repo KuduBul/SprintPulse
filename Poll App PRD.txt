@@ -1,0 +1,289 @@
+# Product Requirements Document (PRD)
+## Shoprite‑X Polling & Live Facilitation App
+
+---
+
+## 1. Overview
+
+### 1.1 Purpose
+The Shoprite‑X Polling & Live Facilitation App is a **web‑based internal tool** designed to support **workshops, retrospectives, PI events, and engagement sessions**. It enables facilitators to create visually rich polls, collect structured and free‑text input, and **control how and when results are revealed in live sessions**.
+
+The product prioritises:
+- Psychological safety
+- Professional, enterprise‑grade UX
+- Facilitator control
+- Auditability and data governance
+
+---
+
+### 1.2 Target Users
+
+| Persona | Description |
+|------|-------------|
+| **Admin / Facilitator** | Scrum Masters, Coaches, RTEs, Workshop Facilitators |
+| **Participant** | Team members attending a session |
+| **Viewer (Future)** | Managers or stakeholders reviewing results |
+
+---
+
+### 1.3 Key Differentiators
+
+- Visual **drag‑and‑drop question placement** on custom images
+- **Facilitator Mode** with live controls (lock voting, staged reveal)
+- Support for **custom free‑text answers**
+- Enterprise‑ready **audit logging and data retention**
+- Built on **Supabase Postgres + Prisma** for scalability and reporting
+
+---
+
+## 2. Goals & Success Criteria
+
+### 2.1 Product Goals
+- Enable fast creation of visually engaging polls
+- Support live facilitation with controlled result reveal
+- Ensure psychological safety during feedback sessions
+- Provide reliable persistence and auditability
+- Be easy to deploy and operate internally (Vercel + Supabase)
+
+### 2.2 Success Metrics
+- Poll creation time < 5 minutes
+- Zero facilitator intervention needed during live voting
+- Ability to reuse polls across sessions
+- Positive facilitator feedback on live control experience
+
+---
+
+## 3. In‑Scope Features
+
+---
+
+## 4. Functional Requirements
+
+### 4.1 Poll Administration
+
+#### 4.1.1 Authentication & Roles
+- Admin access required for poll creation and facilitation
+- Role types:
+  - `ADMIN`
+  - `VIEWER` (read‑only, future)
+- Authentication initially stubbed, with future support for Supabase Auth
+
+---
+
+### 4.1.2 Poll Management
+Admins can:
+- Create and edit polls
+- Define poll metadata:
+  - Title
+  - Optional description
+  - Optional background image
+- Reset all responses for a poll
+- Reuse an existing poll for multiple sessions
+
+---
+
+### 4.1.3 Questions
+Each poll supports multiple questions.
+
+Each question:
+- Has a text prompt
+- Has one or more predefined options
+- May include a **“Custom” free‑text option**
+- Has an optional visual position on the canvas
+
+---
+
+## 5. Visual Poll Editor (PollCanvas)
+
+### 5.1 Description
+The PollCanvas is a visual editor that allows admins to place questions on a background image using drag‑and‑drop.
+
+### 5.2 Functional Behaviour
+- Questions start in a sidebar (unplaced)
+- Questions can be dragged onto the canvas
+- Once placed, questions can be:
+  - Repositioned
+  - Resized
+- Positions are stored as **percentage‑based coordinates**
+
+### 5.3 Responsiveness
+- Desktop & tablet: canvas layout preserved
+- Mobile:
+  - Automatic fallback to vertical list
+  - No drag‑and‑drop interactions
+
+---
+
+## 6. Poll Participation (Public View)
+
+### 6.1 Access
+- Public access via unique poll URL
+- No authentication required
+
+### 6.2 Participant Flow
+1. Participant enters their name
+2. Participant answers all questions
+3. Participant submits responses
+
+### 6.3 Constraints
+- Voting can be enabled or disabled by facilitator
+- Submission blocked if:
+  - Name is missing
+  - Any question is unanswered
+  - Voting is closed
+
+---
+
+## 7. Facilitator Mode (Live Sessions)
+
+### 7.1 Purpose
+Facilitator Mode enables **real‑time control** during live sessions.
+
+### 7.2 Controls
+Facilitators can:
+- Open / close voting
+- Toggle live result updates
+- Anonymise participant names
+- Control result visibility using reveal stages:
+  - `HIDDEN` – no results shown
+  - `COUNTS` – option totals only
+  - `DETAILS` – free‑text and participant data (if allowed)
+
+### 7.3 Live View
+- Displays aggregated results per question
+- Updates automatically while live results are enabled
+- Uses polling (future upgrade path to Supabase Realtime)
+
+---
+
+## 8. Results & Reporting
+
+### 8.1 Aggregation
+Results are aggregated per question:
+- Count per option
+- List of free‑text responses
+- Optional participant list
+
+### 8.2 Privacy
+- Participant names hidden by default
+- Revealed only if anonymisation is disabled
+
+### 8.3 Printing & Export (Future)
+- Print‑friendly layout
+- PDF export via server‑side rendering
+
+---
+
+## 9. Data Model Overview
+
+### 9.1 Core Entities
+- `Poll`
+- `Question`
+- `Response`
+- `AuditLog`
+
+### 9.2 Persistence
+- Supabase Postgres
+- Prisma ORM
+- JSON fields used for:
+  - Question layout
+  - Facilitator state
+
+---
+
+## 10. Audit Logging
+
+### 10.1 Logged Actions
+- Poll created / updated
+- Responses submitted
+- Responses reset
+- Facilitator mode started
+- Facilitator state updated
+
+### 10.2 Purpose
+- Governance
+- Traceability
+- Operational diagnostics
+
+---
+
+## 11. Data Retention Policy
+
+| Data Type | Retention |
+|--------|-----------|
+| Poll responses | 90 days (configurable) |
+| Audit logs | 12 months (configurable) |
+
+- Automated purge endpoint
+- Triggered via Vercel Cron
+
+---
+
+## 12. Non‑Functional Requirements
+
+### 12.1 Security
+- Admin routes protected
+- Server‑side validation
+- No client‑trusted writes
+
+### 12.2 Performance
+- Serverless‑friendly APIs
+- Efficient Postgres queries
+- Indexed tables
+
+### 12.3 Accessibility
+- Keyboard navigation
+- Semantic HTML
+- Adequate contrast
+
+### 12.4 Maintainability
+- Strong typing (TypeScript + Zod)
+- Clear separation of concerns
+- Modular components
+
+---
+
+## 13. Out of Scope (Current Phase)
+
+- External user authentication
+- Public dashboards
+- Cross‑poll analytics
+- Sentiment analysis
+- Multi‑language support
+
+---
+
+## 14. Future Enhancements
+
+- Supabase Auth integration
+- Row Level Security (RLS)
+- Realtime updates via Supabase Realtime
+- PDF export
+- Poll templates
+- Facilitator presenter mode (fullscreen)
+
+---
+
+## 15. Technical Stack
+
+| Layer | Technology |
+|----|-----------|
+| Frontend | Next.js (App Router) |
+| Backend | Next.js API Routes |
+| Database | Supabase Postgres |
+| ORM | Prisma |
+| Hosting | Vercel |
+| Styling | CSS variables (Shoprite‑X tokens) |
+
+---
+
+## 16. Appendix
+
+### 16.1 Key Principles
+- Facilitation first
+- Psychological safety by default
+- Enterprise readiness
+- Simplicity over cleverness
+
+---
+``

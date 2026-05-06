@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Poll {
+  id                 String     @id @default(uuid())
+  title              String     @db.VarChar(200)
+  description        String?    @db.VarChar(1000)
+  backgroundImageUrl String?
+  facilitatorState   Json       @default("{\"_v\":1,\"votingOpen\":false,\"liveResults\":false,\"anonymise\":true,\"revealStage\":\"HIDDEN\"}")
+  isDeleted          Boolean    @default(false)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  questions          Question[]
+  responses          Response[]
+  auditLogs          AuditLog[]
+}
+
+model Question {
+  id           String     @id @default(uuid())
+  pollId       String
+  text         String     @db.VarChar(500)
+  options      Json       // string[]
+  allowCustom  Boolean    @default(false)
+  position     Json?      // {x, y, width, height} | null
+  displayOrder Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  poll         Poll       @relation(fields: [pollId], references: [id])
+  responses    Response[]
+
+  @@index([pollId])
+}
+
+model Response {
+  id              String   @id @default(uuid())
+  pollId          String
+  questionId      String
+  participantName String   @db.VarChar(50)
+  sessionToken    String
+  selectedOption  String
+  customText      String?  @db.Text
+  isTest          Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  poll            Poll     @relation(fields: [pollId], references: [id])
+  question        Question @relation(fields: [questionId], references: [id])
+
+  @@index([pollId])
+  @@index([questionId])
+  @@index([sessionToken])
+  @@unique([pollId, questionId, sessionToken])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  pollId    String?
+  action    String
+  actor     String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  poll      Poll?    @relation(fields: [pollId], references: [id])
+
+  @@index([pollId])
+  @@index([createdAt])
+}
