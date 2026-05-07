@@ -36,3 +36,9 @@ next-env.d.ts
 
 # prisma
 prisma/migrations/
+
+# playwright mcp artifacts
+.playwright-mcp/
+
+# screenshots from testing
+screenshots/

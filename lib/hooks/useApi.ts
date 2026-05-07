@@ -14,7 +14,7 @@ interface ApiResponse<T = unknown> {
  * Automatically includes the `x-admin-token` header from localStorage.
  */
 export function useApi() {
-  const { token } = useAdminToken();
+  const { token, isLoaded } = useAdminToken();
 
   const request = useCallback(
     async <T = unknown>(
@@ -90,5 +90,5 @@ export function useApi() {
     [request]
   );
 
-  return { get, post, patch, del, request };
+  return { get, post, patch, del, request, isLoaded };
 }

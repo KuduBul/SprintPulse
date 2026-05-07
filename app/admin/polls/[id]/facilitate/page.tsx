@@ -25,7 +25,7 @@ interface QuestionData {
 export default function FacilitatePollPage() {
   const params = useParams();
   const pollId = params.id as string;
-  const { get } = useApi();
+  const { get, isLoaded } = useApi();
 
   const [poll, setPoll] = useState<PollData | null>(null);
   const [questions, setQuestions] = useState<QuestionData[]>([]);
@@ -33,6 +33,8 @@ export default function FacilitatePollPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isLoaded) return;
+
     async function fetchData() {
       try {
         const pollRes = await get<PollData>(`/api/polls/${pollId}`);
@@ -62,7 +64,7 @@ export default function FacilitatePollPage() {
     }
 
     fetchData();
-  }, [pollId, get]);
+  }, [pollId, get, isLoaded]);
 
   if (loading) {
     return (

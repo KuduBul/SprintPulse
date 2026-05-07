@@ -16,13 +16,15 @@ export default function EditPollPage() {
   const router = useRouter();
   const params = useParams();
   const pollId = params.id as string;
-  const { get, patch } = useApi();
+  const { get, patch, isLoaded } = useApi();
 
   const [poll, setPoll] = useState<PollData | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isLoaded) return;
+
     async function fetchPoll() {
       const result = await get<PollData>(`/api/polls/${pollId}`);
 
@@ -35,7 +37,7 @@ export default function EditPollPage() {
     }
 
     fetchPoll();
-  }, [pollId, get]);
+  }, [pollId, get, isLoaded]);
 
   async function handleSubmit(data: PollFormData) {
     // TODO: Image upload to Supabase Storage will be wired in task 15.1.

@@ -1,0 +1,35 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp?project_ref=hkndasbxwfreojgigffp",
+      "autoApprove": [
+        "list_tables",
+        "get_project_url",
+        "execute_sql"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ],
+      "autoApprove": [
+        "browser_navigate",
+        "browser_snapshot",
+        "browser_click",
+        "browser_type",
+        "browser_screenshot",
+        "browser_wait",
+        "browser_tab_list",
+        "browser_close",
+        "browser_take_screenshot",
+        "browser_console_messages",
+        "browser_evaluate",
+        "browser_wait_for",
+        "browser_network_requests",
+        "browser_network_request",
+        "browser_network_request"
+      ]
+    }
+  }
+}
