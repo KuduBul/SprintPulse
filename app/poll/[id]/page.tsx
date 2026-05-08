@@ -64,8 +64,21 @@ export default function ParticipantPollPage() {
         // Check if session already exists for this poll
         const existingSession = getSession(pollId);
         if (existingSession) {
-          setParticipantName(existingSession.name);
-          setAlreadySubmitted(true);
+          // Verify with server that the response still exists (may have been reset)
+          const checkRes = await fetch(`/api/polls/${pollId}/session-check`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionToken: existingSession.token }),
+          });
+          const checkData = await checkRes.json().catch(() => ({ submitted: false }));
+
+          if (checkData.submitted) {
+            setParticipantName(existingSession.name);
+            setAlreadySubmitted(true);
+          } else {
+            // Server says no submission exists — clear stale local session
+            localStorage.removeItem(`session_${pollId}`);
+          }
         }
       } catch {
         setNotFound(true);
