@@ -10,7 +10,7 @@ import { notFoundError, internalError } from '@/lib/api/errors';
 export async function GET(request: Request, context: { params: { id: string } }) {
   try {
     const { id } = context.params;
-    const poll = await pollService.getPoll(id);
+    const poll = await pollService.getPublicPoll(id);
 
     if (!poll) {
       return notFoundError('Poll not found');

@@ -5,7 +5,10 @@
       "autoApprove": [
         "list_tables",
         "get_project_url",
-        "execute_sql"
+        "execute_sql",
+        "search_docs",
+        "list_migrations",
+        "apply_migration"
       ]
     },
     "playwright": {

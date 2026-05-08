@@ -32,3 +32,6 @@ export type {
 
 export { retentionService, createRetentionService } from './retentionService';
 export type { RetentionService, PurgeResult } from './retentionService';
+
+export { profileService, createProfileService } from './profileService';
+export type { ProfileService, FacilitatorProfile } from './profileService';

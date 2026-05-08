@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAdminToken } from '@/lib/hooks/useAdminToken';
+import { useApi } from '@/lib/hooks/useApi';
 import Link from 'next/link';
 
 interface Poll {
@@ -13,108 +13,56 @@ interface Poll {
 }
 
 export default function AdminPollsPage() {
-  const { token } = useAdminToken();
+  const { get, del, post } = useApi();
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchPolls = useCallback(async () => {
-    if (!token) return;
-
     setLoading(true);
     setError(null);
 
-    try {
-      const response = await fetch('/api/polls', {
-        headers: {
-          'x-admin-token': token,
-        },
-      });
-
-      if (!response.ok) {
-        const body = await response.json();
-        setError(body.error?.message || 'Failed to fetch polls');
-        return;
-      }
-
-      const data = await response.json();
-      setPolls(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Network error');
-    } finally {
-      setLoading(false);
+    const res = await get<Poll[]>('/api/polls');
+    if (res.error) {
+      setError(res.error.message || 'Failed to fetch polls');
+    } else if (res.data) {
+      setPolls(res.data);
     }
-  }, [token]);
+    setLoading(false);
+  }, [get]);
 
   useEffect(() => {
     fetchPolls();
   }, [fetchPolls]);
 
   const handleDelete = async (pollId: string) => {
-    if (!token) return;
     if (!confirm('Are you sure you want to delete this poll?')) return;
 
-    try {
-      const response = await fetch(`/api/polls/${pollId}`, {
-        method: 'DELETE',
-        headers: {
-          'x-admin-token': token,
-        },
-      });
-
-      if (response.ok) {
-        setPolls((prev) => prev.filter((p) => p.id !== pollId));
-      } else {
-        const body = await response.json();
-        alert(body.error?.message || 'Failed to delete poll');
-      }
-    } catch {
-      alert('Network error while deleting poll');
+    const res = await del(`/api/polls/${pollId}`);
+    if (res.status === 200) {
+      setPolls((prev) => prev.filter((p) => p.id !== pollId));
+    } else {
+      alert(res.error?.message || 'Failed to delete poll');
     }
   };
 
   const handleClone = async (pollId: string) => {
-    if (!token) return;
-
-    try {
-      const response = await fetch(`/api/polls/${pollId}/clone`, {
-        method: 'POST',
-        headers: {
-          'x-admin-token': token,
-        },
-      });
-
-      if (response.ok) {
-        fetchPolls();
-      } else {
-        const body = await response.json();
-        alert(body.error?.message || 'Failed to clone poll');
-      }
-    } catch {
-      alert('Network error while cloning poll');
+    const res = await post(`/api/polls/${pollId}/clone`);
+    if (res.status === 201) {
+      fetchPolls();
+    } else {
+      alert(res.error?.message || 'Failed to clone poll');
     }
   };
 
   const handleReset = async (pollId: string) => {
-    if (!token) return;
     if (!confirm('Are you sure you want to reset all responses for this poll?')) return;
 
-    try {
-      const response = await fetch(`/api/polls/${pollId}/reset`, {
-        method: 'POST',
-        headers: {
-          'x-admin-token': token,
-        },
-      });
-
-      if (response.ok) {
-        alert('Responses reset successfully');
-      } else {
-        const body = await response.json();
-        alert(body.error?.message || 'Failed to reset responses');
-      }
-    } catch {
-      alert('Network error while resetting responses');
+    const res = await post(`/api/polls/${pollId}/reset`);
+    if (res.status === 200) {
+      alert('Responses reset successfully');
+    } else {
+      alert(res.error?.message || 'Failed to reset responses');
     }
   };
 

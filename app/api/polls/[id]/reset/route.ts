@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
-import { withAdminAuth } from '@/middleware/adminAuth';
+import { withAuth } from '@/middleware/authGuard';
 import { pollService, responseService } from '@/lib/services';
 import { notFoundError, internalError } from '@/lib/api/errors';
 
 /**
- * POST /api/polls/[id]/reset — Reset responses for a poll (admin auth required).
+ * POST /api/polls/[id]/reset — Reset responses for a poll (auth required, ownership enforced).
  * Query param: ?testOnly=true to clear only test-flagged responses.
  * Without testOnly, deletes all responses associated with the poll.
  */
-export const POST = withAdminAuth(async (request: Request, context: { params: { id: string } }) => {
+export const POST = withAuth(async (request: Request, context: { userId: string; params?: { id: string } }) => {
   try {
-    const { id } = context.params;
-    const existing = await pollService.getPoll(id);
+    const { id } = context.params!;
+    const existing = await pollService.getPoll(id, context.userId);
 
     if (!existing) {
       return notFoundError('Poll not found');
@@ -25,7 +25,7 @@ export const POST = withAdminAuth(async (request: Request, context: { params: { 
       return NextResponse.json({ message: 'Test responses cleared' });
     }
 
-    await pollService.resetResponses(id);
+    await pollService.resetResponses(id, context.userId);
     return NextResponse.json({ message: 'Responses reset' });
   } catch (error) {
     return internalError();

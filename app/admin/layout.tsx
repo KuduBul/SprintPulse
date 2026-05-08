@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAdminToken } from '@/lib/hooks/useAdminToken';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { AuthForm } from '@/components/auth/AuthForm';
 import Link from 'next/link';
 
 export default function AdminLayout({
@@ -9,8 +9,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { token, setToken, isAuthenticated, isLoaded } = useAdminToken();
-  const [inputToken, setInputToken] = useState('');
+  const { isAuthenticated, isLoaded, user, signOut } = useAuth();
 
   if (!isLoaded) {
     return (
@@ -33,88 +32,12 @@ export default function AdminLayout({
           padding: 'var(--space-8)',
         }}
       >
-        <section
-          style={{
-            maxWidth: '400px',
-            width: '100%',
-            padding: 'var(--space-8)',
-            border: '1px solid var(--color-border-default)',
-            borderRadius: 'var(--radius-lg)',
-          }}
-        >
-          <h1
-            style={{
-              fontSize: 'var(--font-size-2xl)',
-              fontWeight: 'var(--font-weight-bold)',
-              marginBottom: 'var(--space-4)',
-              color: 'var(--color-primary-800)',
-            }}
-          >
-            SprintPulse
-          </h1>
-          <p
-            style={{
-              color: 'var(--color-text-secondary)',
-              marginBottom: 'var(--space-6)',
-            }}
-          >
-            Enter the admin token to access the dashboard.
-          </p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (inputToken.trim()) {
-                setToken(inputToken.trim());
-              }
-            }}
-          >
-            <label
-              htmlFor="admin-token-input"
-              style={{
-                display: 'block',
-                fontWeight: 'var(--font-weight-medium)',
-                marginBottom: 'var(--space-2)',
-              }}
-            >
-              Admin Token
-            </label>
-            <input
-              id="admin-token-input"
-              type="password"
-              value={inputToken}
-              onChange={(e) => setInputToken(e.target.value)}
-              placeholder="Enter admin token"
-              required
-              style={{
-                width: '100%',
-                padding: 'var(--space-3)',
-                border: '1px solid var(--color-border-strong)',
-                borderRadius: 'var(--radius-md)',
-                fontSize: 'var(--font-size-base)',
-                marginBottom: 'var(--space-4)',
-              }}
-            />
-            <button
-              type="submit"
-              style={{
-                width: '100%',
-                padding: 'var(--space-3)',
-                backgroundColor: 'var(--color-primary-700)',
-                color: 'var(--color-text-on-primary)',
-                border: 'none',
-                borderRadius: 'var(--radius-md)',
-                fontSize: 'var(--font-size-base)',
-                fontWeight: 'var(--font-weight-semibold)',
-                cursor: 'pointer',
-              }}
-            >
-              Sign In
-            </button>
-          </form>
-        </section>
+        <AuthForm />
       </main>
     );
   }
+
+  const displayName = user?.user_metadata?.display_name || user?.email || 'Facilitator';
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg-page)' }}>
@@ -158,6 +81,42 @@ export default function AdminLayout({
           >
             Polls
           </Link>
+          <Link
+            href="/admin/profile"
+            style={{
+              color: 'var(--color-text-secondary)',
+              textDecoration: 'none',
+              fontWeight: 'var(--font-weight-medium)',
+              fontSize: 'var(--font-size-sm)',
+            }}
+          >
+            Profile
+          </Link>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+          <span
+            style={{
+              fontSize: 'var(--font-size-sm)',
+              color: 'var(--color-text-secondary)',
+            }}
+          >
+            {displayName}
+          </span>
+          <button
+            onClick={() => signOut()}
+            style={{
+              padding: 'var(--space-2) var(--space-4)',
+              backgroundColor: 'transparent',
+              color: 'var(--color-text-secondary)',
+              border: '1px solid var(--color-border-strong)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 'var(--font-size-sm)',
+              fontWeight: 'var(--font-weight-medium)',
+              cursor: 'pointer',
+            }}
+          >
+            Logout
+          </button>
         </div>
       </nav>
       <main id="main-content" style={{ flex: 1, padding: 'var(--space-8) var(--space-6)' }}>

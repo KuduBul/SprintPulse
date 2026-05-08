@@ -42,13 +42,14 @@ export interface PublicPollView {
  * Interface for the Poll Service.
  */
 export interface PollService {
-  createPoll(data: CreatePollInput): Promise<Poll>;
-  updatePoll(id: string, data: UpdatePollInput): Promise<Poll>;
-  deletePoll(id: string): Promise<void>;
-  clonePoll(id: string): Promise<Poll>;
-  resetResponses(id: string): Promise<void>;
-  getPoll(id: string): Promise<Poll | null>;
-  listPolls(): Promise<Poll[]>;
+  createPoll(data: CreatePollInput, userId: string): Promise<Poll>;
+  updatePoll(id: string, data: UpdatePollInput, userId: string): Promise<Poll | null>;
+  deletePoll(id: string, userId: string): Promise<boolean>;
+  clonePoll(id: string, userId: string): Promise<Poll | null>;
+  resetResponses(id: string, userId: string): Promise<boolean>;
+  getPoll(id: string, userId: string): Promise<Poll | null>;
+  listPolls(userId: string): Promise<Poll[]>;
+  listPublicPolls(): Promise<Poll[]>;
   getPublicPoll(id: string): Promise<PublicPollView | null>;
 }
 
@@ -58,12 +59,13 @@ export interface PollService {
  */
 export function createPollService(): PollService {
   return {
-    async createPoll(data: CreatePollInput): Promise<Poll> {
+    async createPoll(data: CreatePollInput, userId: string): Promise<Poll> {
       const poll = await prisma.$transaction(async (tx: PrismaTransactionClient) => {
         const created = await tx.poll.create({
           data: {
             title: data.title,
             description: data.description ?? null,
+            userId,
             facilitatorState: DEFAULT_FACILITATOR_STATE as unknown as Prisma.InputJsonValue,
           },
         });
@@ -72,7 +74,7 @@ export function createPollService(): PollService {
           {
             pollId: created.id,
             action: 'POLL_CREATED',
-            actor: 'admin',
+            actor: userId,
             metadata: { title: created.title },
           },
           tx,
@@ -84,7 +86,15 @@ export function createPollService(): PollService {
       return poll;
     },
 
-    async updatePoll(id: string, data: UpdatePollInput): Promise<Poll> {
+    async updatePoll(id: string, data: UpdatePollInput, userId: string): Promise<Poll | null> {
+      const existing = await prisma.poll.findFirst({
+        where: { id, userId, isDeleted: false },
+      });
+
+      if (!existing) {
+        return null;
+      }
+
       const poll = await prisma.$transaction(async (tx: PrismaTransactionClient) => {
         const updated = await tx.poll.update({
           where: { id },
@@ -99,7 +109,7 @@ export function createPollService(): PollService {
           {
             pollId: updated.id,
             action: 'POLL_UPDATED',
-            actor: 'admin',
+            actor: userId,
             metadata: { updatedFields: Object.keys(data) },
           },
           tx,
@@ -111,7 +121,15 @@ export function createPollService(): PollService {
       return poll;
     },
 
-    async deletePoll(id: string): Promise<void> {
+    async deletePoll(id: string, userId: string): Promise<boolean> {
+      const existing = await prisma.poll.findFirst({
+        where: { id, userId, isDeleted: false },
+      });
+
+      if (!existing) {
+        return false;
+      }
+
       await prisma.$transaction(async (tx: PrismaTransactionClient) => {
         await tx.poll.update({
           where: { id },
@@ -122,33 +140,40 @@ export function createPollService(): PollService {
           {
             pollId: id,
             action: 'POLL_DELETED',
-            actor: 'admin',
+            actor: userId,
           },
           tx,
         );
       });
+
+      return true;
     },
 
-    async clonePoll(id: string): Promise<Poll> {
-      const poll = await prisma.$transaction(async (tx: PrismaTransactionClient) => {
-        const original = await tx.poll.findUniqueOrThrow({
-          where: { id },
-          include: { questions: true },
-        });
+    async clonePoll(id: string, userId: string): Promise<Poll | null> {
+      const existing = await prisma.poll.findFirst({
+        where: { id, userId, isDeleted: false },
+        include: { questions: true },
+      });
 
+      if (!existing) {
+        return null;
+      }
+
+      const poll = await prisma.$transaction(async (tx: PrismaTransactionClient) => {
         const cloned = await tx.poll.create({
           data: {
-            title: `${original.title} (Copy)`,
-            description: original.description,
-            backgroundImageUrl: original.backgroundImageUrl,
+            title: `${existing.title} (Copy)`,
+            description: existing.description,
+            backgroundImageUrl: existing.backgroundImageUrl,
+            userId,
             facilitatorState: DEFAULT_FACILITATOR_STATE as unknown as Prisma.InputJsonValue,
           },
         });
 
         // Duplicate all questions
-        if (original.questions.length > 0) {
+        if (existing.questions.length > 0) {
           await tx.question.createMany({
-            data: original.questions.map((q: Question) => ({
+            data: existing.questions.map((q: Question) => ({
               pollId: cloned.id,
               text: q.text,
               options: q.options as Prisma.InputJsonValue,
@@ -163,7 +188,7 @@ export function createPollService(): PollService {
           {
             pollId: cloned.id,
             action: 'POLL_CLONED',
-            actor: 'admin',
+            actor: userId,
             metadata: { sourcePollId: id, newPollId: cloned.id },
           },
           tx,
@@ -175,7 +200,15 @@ export function createPollService(): PollService {
       return poll;
     },
 
-    async resetResponses(id: string): Promise<void> {
+    async resetResponses(id: string, userId: string): Promise<boolean> {
+      const existing = await prisma.poll.findFirst({
+        where: { id, userId, isDeleted: false },
+      });
+
+      if (!existing) {
+        return false;
+      }
+
       await prisma.$transaction(async (tx: PrismaTransactionClient) => {
         const { count } = await tx.response.deleteMany({
           where: { pollId: id },
@@ -185,21 +218,30 @@ export function createPollService(): PollService {
           {
             pollId: id,
             action: 'RESPONSES_RESET',
-            actor: 'admin',
+            actor: userId,
             metadata: { deletedCount: count },
           },
           tx,
         );
       });
+
+      return true;
     },
 
-    async getPoll(id: string): Promise<Poll | null> {
+    async getPoll(id: string, userId: string): Promise<Poll | null> {
       return prisma.poll.findFirst({
-        where: { id, isDeleted: false },
+        where: { id, userId, isDeleted: false },
       });
     },
 
-    async listPolls(): Promise<Poll[]> {
+    async listPolls(userId: string): Promise<Poll[]> {
+      return prisma.poll.findMany({
+        where: { userId, isDeleted: false },
+        orderBy: { createdAt: 'desc' },
+      });
+    },
+
+    async listPublicPolls(): Promise<Poll[]> {
       return prisma.poll.findMany({
         where: { isDeleted: false },
         orderBy: { createdAt: 'desc' },

@@ -69,7 +69,6 @@ export default function EditPollPage() {
 
       const uploadRes = await fetch(`/api/polls/${pollId}/upload`, {
         method: 'POST',
-        headers: { 'x-admin-token': localStorage.getItem('adminToken') || '' },
         body: formData,
       });
 

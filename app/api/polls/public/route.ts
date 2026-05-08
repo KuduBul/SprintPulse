@@ -8,7 +8,7 @@ import { internalError } from '@/lib/api/errors';
  */
 export async function GET() {
   try {
-    const polls = await pollService.listPolls();
+    const polls = await pollService.listPublicPolls();
 
     // Return only public-facing fields
     const publicPolls = polls.map((poll: any) => ({

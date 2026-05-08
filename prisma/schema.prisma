@@ -10,6 +10,7 @@ datasource db {
 
 model Poll {
   id                 String     @id @default(uuid())
+  userId             String
   title              String     @db.VarChar(200)
   description        String?    @db.VarChar(1000)
   backgroundImageUrl String?
@@ -21,6 +22,8 @@ model Poll {
   questions          Question[]
   responses          Response[]
   auditLogs          AuditLog[]
+
+  @@index([userId])
 }
 
 model Question {
