@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
-import { withAdminAuth } from '@/middleware/adminAuth';
+import { withAuth } from '@/middleware/authGuard';
 import { pollService } from '@/lib/services';
 import { CreatePollSchema } from '@/lib/validators/schemas';
 import { validationError, internalError, formatZodError } from '@/lib/api/errors';
 
 /**
- * GET /api/polls — List all non-deleted polls (admin auth required).
+ * GET /api/polls — List all non-deleted polls for the authenticated user.
  */
-export const GET = withAdminAuth(async () => {
+export const GET = withAuth(async (_request: Request, context: { userId: string }) => {
   try {
-    const polls = await pollService.listPolls();
+    const polls = await pollService.listPolls(context.userId);
     return NextResponse.json(polls);
   } catch (error) {
     return internalError();
@@ -17,10 +17,10 @@ export const GET = withAdminAuth(async () => {
 });
 
 /**
- * POST /api/polls — Create a new poll (admin auth required).
+ * POST /api/polls — Create a new poll (auth required).
  * Body: { title: string, description?: string }
  */
-export const POST = withAdminAuth(async (request: Request) => {
+export const POST = withAuth(async (request: Request, context: { userId: string }) => {
   try {
     const body = await request.json();
     const result = CreatePollSchema.safeParse(body);
@@ -29,7 +29,7 @@ export const POST = withAdminAuth(async (request: Request) => {
       return validationError(formatZodError(result.error));
     }
 
-    const poll = await pollService.createPoll(result.data);
+    const poll = await pollService.createPoll(result.data, context.userId);
     return NextResponse.json(poll, { status: 201 });
   } catch (error) {
     return internalError();

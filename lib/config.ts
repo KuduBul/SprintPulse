@@ -19,9 +19,6 @@ export const config = {
   /** Supabase Postgres connection string (required) */
   DATABASE_URL: requireEnv('DATABASE_URL'),
 
-  /** Shared secret for admin API authentication (required) */
-  ADMIN_SECRET: requireEnv('ADMIN_SECRET'),
-
   /** Number of days to retain poll responses before purge (default: 90) */
   RETENTION_RESPONSES_DAYS: parseInt(
     optionalEnv('RETENTION_RESPONSES_DAYS', '90'),

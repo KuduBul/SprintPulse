@@ -7,10 +7,10 @@ import { CreateQuestionInput, UpdateQuestionInput } from '@/lib/validators/schem
  * Interface for the Question Service.
  */
 export interface QuestionService {
-  createQuestion(pollId: string, data: CreateQuestionInput): Promise<Question>;
-  updateQuestion(id: string, data: UpdateQuestionInput): Promise<Question>;
-  deleteQuestion(id: string): Promise<void>;
-  reorderQuestions(pollId: string, order: string[]): Promise<void>;
+  createQuestion(pollId: string, data: CreateQuestionInput, userId?: string): Promise<Question>;
+  updateQuestion(id: string, data: UpdateQuestionInput, userId?: string): Promise<Question>;
+  deleteQuestion(id: string, userId?: string): Promise<void>;
+  reorderQuestions(pollId: string, order: string[], userId?: string): Promise<void>;
 }
 
 /**
@@ -19,7 +19,7 @@ export interface QuestionService {
  */
 export function createQuestionService(): QuestionService {
   return {
-    async createQuestion(pollId: string, data: CreateQuestionInput): Promise<Question> {
+    async createQuestion(pollId: string, data: CreateQuestionInput, userId?: string): Promise<Question> {
       const question = await prisma.$transaction(async (tx: PrismaTransactionClient) => {
         const created = await tx.question.create({
           data: {
@@ -36,7 +36,7 @@ export function createQuestionService(): QuestionService {
           {
             pollId,
             action: 'QUESTION_CREATED',
-            actor: 'admin',
+            actor: userId || 'admin',
             metadata: { questionId: created.id, text: created.text },
           },
           tx,
@@ -48,7 +48,7 @@ export function createQuestionService(): QuestionService {
       return question;
     },
 
-    async updateQuestion(id: string, data: UpdateQuestionInput): Promise<Question> {
+    async updateQuestion(id: string, data: UpdateQuestionInput, userId?: string): Promise<Question> {
       const question = await prisma.$transaction(async (tx: PrismaTransactionClient) => {
         const updateData: Record<string, unknown> = {};
 
@@ -79,7 +79,7 @@ export function createQuestionService(): QuestionService {
           {
             pollId: updated.pollId,
             action: 'QUESTION_UPDATED',
-            actor: 'admin',
+            actor: userId || 'admin',
             metadata: { questionId: updated.id, updatedFields: Object.keys(data) },
           },
           tx,
@@ -91,7 +91,7 @@ export function createQuestionService(): QuestionService {
       return question;
     },
 
-    async deleteQuestion(id: string): Promise<void> {
+    async deleteQuestion(id: string, userId?: string): Promise<void> {
       await prisma.$transaction(async (tx: PrismaTransactionClient) => {
         const question = await tx.question.delete({
           where: { id },
@@ -101,7 +101,7 @@ export function createQuestionService(): QuestionService {
           {
             pollId: question.pollId,
             action: 'QUESTION_DELETED',
-            actor: 'admin',
+            actor: userId || 'admin',
             metadata: { questionId: id },
           },
           tx,
@@ -109,7 +109,7 @@ export function createQuestionService(): QuestionService {
       });
     },
 
-    async reorderQuestions(pollId: string, order: string[]): Promise<void> {
+    async reorderQuestions(pollId: string, order: string[], userId?: string): Promise<void> {
       await prisma.$transaction(async (tx: PrismaTransactionClient) => {
         // Update each question's displayOrder based on its position in the order array
         for (let i = 0; i < order.length; i++) {
@@ -123,7 +123,7 @@ export function createQuestionService(): QuestionService {
           {
             pollId,
             action: 'QUESTION_UPDATED',
-            actor: 'admin',
+            actor: userId || 'admin',
             metadata: { reordered: true, questionIds: order },
           },
           tx,

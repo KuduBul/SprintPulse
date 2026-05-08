@@ -29,7 +29,7 @@ interface StoredFacilitatorState extends FacilitatorState {
  */
 export interface FacilitatorService {
   getState(pollId: string): Promise<FacilitatorState>;
-  updateState(pollId: string, patch: Partial<FacilitatorState>): Promise<FacilitatorState>;
+  updateState(pollId: string, patch: Partial<FacilitatorState>, userId?: string): Promise<FacilitatorState>;
 }
 
 /**
@@ -100,7 +100,7 @@ export function createFacilitatorService(): FacilitatorService {
       return toPublicState(stored);
     },
 
-    async updateState(pollId: string, patch: Partial<FacilitatorState>): Promise<FacilitatorState> {
+    async updateState(pollId: string, patch: Partial<FacilitatorState>, userId?: string): Promise<FacilitatorState> {
       const result = await prisma.$transaction(async (tx: PrismaTransactionClient) => {
         // Read current state
         const poll = await tx.poll.findFirstOrThrow({
@@ -135,7 +135,7 @@ export function createFacilitatorService(): FacilitatorService {
               {
                 pollId,
                 action: 'VOTING_OPENED',
-                actor: 'admin',
+                actor: userId || 'admin',
                 metadata: { previousState: currentPublic.votingOpen },
               },
               tx,
@@ -145,7 +145,7 @@ export function createFacilitatorService(): FacilitatorService {
               {
                 pollId,
                 action: 'VOTING_CLOSED',
-                actor: 'admin',
+                actor: userId || 'admin',
                 metadata: { previousState: currentPublic.votingOpen },
               },
               tx,
@@ -158,7 +158,7 @@ export function createFacilitatorService(): FacilitatorService {
             {
               pollId,
               action: 'REVEAL_STAGE_CHANGED',
-              actor: 'admin',
+              actor: userId || 'admin',
               metadata: {
                 from: currentPublic.revealStage,
                 to: patch.revealStage,
@@ -173,7 +173,7 @@ export function createFacilitatorService(): FacilitatorService {
           {
             pollId,
             action: 'FACILITATOR_STATE_UPDATED',
-            actor: 'admin',
+            actor: userId || 'admin',
             metadata: {
               patch,
               previousState: currentPublic,

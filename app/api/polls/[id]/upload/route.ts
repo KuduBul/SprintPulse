@@ -1,23 +1,23 @@
 import { NextResponse } from 'next/server';
-import { withAdminAuth } from '@/middleware/adminAuth';
+import { withAuth } from '@/middleware/authGuard';
 import { pollService } from '@/lib/services';
 import { validateImage } from '@/lib/validators/imageValidator';
 import { uploadPollBackground } from '@/lib/storage/supabaseStorage';
 import { notFoundError, internalError, validationError } from '@/lib/api/errors';
 
 /**
- * POST /api/polls/[id]/upload — Upload a background image for a poll (admin auth required).
+ * POST /api/polls/[id]/upload — Upload a background image for a poll (auth required, ownership enforced).
  *
  * Accepts multipart form data with a `file` field.
  * Validates file type (JPEG, PNG, WebP) and size (≤5MB).
  * Uploads to Supabase Storage and updates the poll's backgroundImageUrl.
  */
-export const POST = withAdminAuth(async (request: Request, context: { params: { id: string } }) => {
+export const POST = withAuth(async (request: Request, context: { userId: string; params?: { id: string } }) => {
   try {
-    const { id } = context.params;
+    const { id } = context.params!;
 
-    // Verify poll exists
-    const poll = await pollService.getPoll(id);
+    // Verify poll exists and belongs to user
+    const poll = await pollService.getPoll(id, context.userId);
     if (!poll) {
       return notFoundError('Poll not found');
     }
@@ -52,7 +52,7 @@ export const POST = withAdminAuth(async (request: Request, context: { params: { 
     // Update poll with new background image URL
     const updatedPoll = await pollService.updatePoll(id, {
       backgroundImageUrl: publicUrl,
-    });
+    }, context.userId);
 
     return NextResponse.json(updatedPoll);
   } catch (error) {

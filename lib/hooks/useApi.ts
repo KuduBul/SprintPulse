@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useEffect } from 'react';
-import { useAdminToken } from './useAdminToken';
+import { useCallback } from 'react';
 
 interface ApiResponse<T = unknown> {
   data?: T;
@@ -11,30 +10,21 @@ interface ApiResponse<T = unknown> {
 
 /**
  * Custom hook for making authenticated API calls.
- * Automatically includes the `x-admin-token` header from localStorage.
- * Uses a ref for the token to keep callback references stable.
+ * Session cookies are sent automatically by the browser — no explicit token header needed.
  */
 export function useApi() {
-  const { token, isLoaded } = useAdminToken();
-  const tokenRef = useRef(token);
-
-  // Keep the ref in sync with the latest token value
-  useEffect(() => {
-    tokenRef.current = token;
-  }, [token]);
-
   const request = useCallback(
     async <T = unknown>(
       url: string,
       options: RequestInit = {}
     ): Promise<ApiResponse<T>> => {
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
         ...(options.headers as Record<string, string>),
       };
 
-      if (tokenRef.current) {
-        headers['x-admin-token'] = tokenRef.current;
+      // Only set Content-Type for non-FormData requests
+      if (!(options.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
       }
 
       try {
@@ -97,5 +87,5 @@ export function useApi() {
     [request]
   );
 
-  return { get, post, patch, del, request, isLoaded };
+  return { get, post, patch, del, request, isLoaded: true };
 }
