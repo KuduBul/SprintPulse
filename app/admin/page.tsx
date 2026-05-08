@@ -170,14 +170,15 @@ export default function AdminPollsPage() {
         <Link
           href="/admin/polls/new"
           style={{
-            padding: 'var(--space-2) var(--space-4)',
-            backgroundColor: 'var(--color-primary-700)',
+            padding: 'var(--space-2) var(--space-5)',
+            background: 'linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700))',
             color: 'var(--color-text-on-primary)',
             border: 'none',
             borderRadius: 'var(--radius-md)',
             textDecoration: 'none',
             fontWeight: 'var(--font-weight-semibold)',
             fontSize: 'var(--font-size-sm)',
+            boxShadow: '0 2px 4px rgb(20 93 225 / 0.2)',
           }}
         >
           Create New Poll
@@ -194,10 +195,14 @@ export default function AdminPollsPage() {
             <li
               key={poll.id}
               style={{
-                padding: 'var(--space-4)',
+                padding: 'var(--space-5)',
+                backgroundColor: 'var(--color-bg-primary)',
                 border: '1px solid var(--color-border-default)',
-                borderRadius: 'var(--radius-md)',
-                marginBottom: 'var(--space-3)',
+                borderLeft: '3px solid var(--color-primary-400)',
+                borderRadius: 'var(--radius-lg)',
+                marginBottom: 'var(--space-4)',
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'box-shadow var(--transition-normal)',
               }}
             >
               <div

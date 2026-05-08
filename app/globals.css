@@ -92,9 +92,10 @@
   --color-text-on-primary: var(--color-neutral-0);      /* 8.6:1 on primary-700 */
 
   --color-bg-primary: var(--color-neutral-0);
-  --color-bg-secondary: var(--color-neutral-50);
+  --color-bg-secondary: #f7f9fc;                        /* Soft blue-tinted grey */
   --color-bg-tertiary: var(--color-neutral-100);
   --color-bg-canvas: var(--color-neutral-200);
+  --color-bg-page: #f4f7fb;                             /* Page-level tinted background */
 
   --color-border-default: var(--color-neutral-200);
   --color-border-strong: var(--color-neutral-300);
@@ -157,12 +158,12 @@
   --radius-full: 9999px;
 
   /* --------------------------------------------------------------------------
-     Shadows — subtle depth
+     Shadows — visible card elevation on tinted backgrounds
      -------------------------------------------------------------------------- */
-  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.04);
-  --shadow-md: 0 4px 6px -1px rgb(15 23 42 / 0.06), 0 2px 4px -2px rgb(15 23 42 / 0.04);
-  --shadow-lg: 0 10px 15px -3px rgb(15 23 42 / 0.08), 0 4px 6px -4px rgb(15 23 42 / 0.04);
-  --shadow-xl: 0 20px 25px -5px rgb(15 23 42 / 0.08), 0 8px 10px -6px rgb(15 23 42 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.04);
+  --shadow-md: 0 4px 8px -1px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.04);
+  --shadow-lg: 0 10px 20px -4px rgb(15 23 42 / 0.10), 0 4px 8px -4px rgb(15 23 42 / 0.05);
+  --shadow-xl: 0 20px 30px -6px rgb(15 23 42 / 0.12), 0 8px 12px -6px rgb(15 23 42 / 0.05);
 
   /* --------------------------------------------------------------------------
      Transitions — smooth micro-interactions
@@ -203,7 +204,7 @@ html {
 
 body {
   color: var(--color-text-primary);
-  background-color: var(--color-bg-primary);
+  background-color: var(--color-bg-page);
   font-family: var(--font-family-sans);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);

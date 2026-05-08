@@ -117,7 +117,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg-page)' }}>
       <nav
         style={{
           display: 'flex',
@@ -125,7 +125,8 @@ export default function AdminLayout({
           justifyContent: 'space-between',
           padding: 'var(--space-4) var(--space-6)',
           borderBottom: '1px solid var(--color-border-default)',
-          backgroundColor: 'var(--color-bg-secondary)',
+          backgroundColor: 'var(--color-bg-primary)',
+          boxShadow: 'var(--shadow-sm)',
         }}
         aria-label="Admin navigation"
       >
@@ -159,7 +160,7 @@ export default function AdminLayout({
           </Link>
         </div>
       </nav>
-      <main id="main-content" style={{ flex: 1, padding: 'var(--space-6)' }}>
+      <main id="main-content" style={{ flex: 1, padding: 'var(--space-8) var(--space-6)' }}>
         {children}
       </main>
     </div>

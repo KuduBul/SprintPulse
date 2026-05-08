@@ -12,7 +12,7 @@ export default function Home() {
         justifyContent: 'center',
         padding: 'var(--space-8)',
         fontFamily: 'var(--font-family-sans)',
-        backgroundColor: 'var(--color-bg-secondary)',
+        backgroundColor: 'var(--color-bg-page)',
       }}
     >
       <div
