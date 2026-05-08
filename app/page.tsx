@@ -48,12 +48,14 @@ export default function Home() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gridTemplateColumns: 'repeat(2, 1fr)',
             gap: 'var(--space-5)',
             width: '100%',
+            maxWidth: '520px',
+            margin: '0 auto',
           }}
         >
-          {/* Administrator */}
+          {/* Facilitator (merged Admin + Facilitator) */}
           <Link
             href="/admin"
             style={{
@@ -83,59 +85,6 @@ export default function Home() {
               }}
               aria-hidden="true"
             >
-              🛠️
-            </span>
-            <span
-              style={{
-                fontSize: 'var(--font-size-lg)',
-                fontWeight: 'var(--font-weight-semibold)',
-                color: 'var(--color-text-primary)',
-              }}
-            >
-              Administrator
-            </span>
-            <span
-              style={{
-                fontSize: 'var(--font-size-sm)',
-                color: 'var(--color-text-secondary)',
-                textAlign: 'center',
-                lineHeight: 'var(--line-height-relaxed)',
-              }}
-            >
-              Create and manage polls, questions, and canvas layouts
-            </span>
-          </Link>
-
-          {/* Facilitator */}
-          <Link
-            href="/admin"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 'var(--space-3)',
-              padding: 'var(--space-8) var(--space-6)',
-              backgroundColor: 'var(--color-bg-primary)',
-              border: '1px solid var(--color-border-default)',
-              borderRadius: 'var(--radius-xl)',
-              textDecoration: 'none',
-              transition: 'all var(--transition-normal)',
-              boxShadow: 'var(--shadow-sm)',
-            }}
-          >
-            <span
-              style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: 'var(--radius-lg)',
-                backgroundColor: 'var(--color-secondary-50)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.5rem',
-              }}
-              aria-hidden="true"
-            >
               📋
             </span>
             <span
@@ -155,7 +104,7 @@ export default function Home() {
                 lineHeight: 'var(--line-height-relaxed)',
               }}
             >
-              Run live sessions, control poll flow, and view real-time results
+              Create polls, manage questions, and run live sessions
             </span>
           </Link>
 
@@ -181,7 +130,7 @@ export default function Home() {
                 width: '48px',
                 height: '48px',
                 borderRadius: 'var(--radius-lg)',
-                backgroundColor: 'var(--color-warning-50)',
+                backgroundColor: 'var(--color-secondary-50)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -220,7 +169,7 @@ export default function Home() {
             color: 'var(--color-text-muted)',
           }}
         >
-          Facilitators and Participants: select a poll from the Admin dashboard to access your session.
+          Facilitators create and run polls. Participants join to vote.
         </p>
       </div>
     </main>
