@@ -83,18 +83,25 @@ export function PollCanvas({
   const placedQuestions = questions.filter((q) => q.position !== null);
   const unplacedQuestions = questions.filter((q) => q.position === null);
 
+  // Stable string key derived from placed question IDs to avoid re-running
+  // the effect on every render (filter() creates a new array reference each time).
+  const placedIdsKey = placedQuestions.map((q) => q.id).join(',');
+
   // Update placement order when questions change externally
   useEffect(() => {
-    const placedIds = new Set(placedQuestions.map((q) => q.id));
+    const placedIds = new Set(placedIdsKey.split(',').filter(Boolean));
     setPlacementOrder((prev) => {
       // Keep existing order for still-placed questions, add new ones at end
       const filtered = prev.filter((id) => placedIds.has(id));
-      const newIds = placedQuestions
-        .map((q) => q.id)
-        .filter((id) => !filtered.includes(id));
-      return [...filtered, ...newIds];
+      const newIds = Array.from(placedIds).filter((id) => !filtered.includes(id));
+      const next = [...filtered, ...newIds];
+      // Only update if actually changed to avoid unnecessary re-renders
+      if (next.length === prev.length && next.every((id, i) => prev[i] === id)) {
+        return prev;
+      }
+      return next;
     });
-  }, [placedQuestions]);
+  }, [placedIdsKey]);
 
   // Close context menu on click elsewhere or Escape key
   useEffect(() => {

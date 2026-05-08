@@ -62,6 +62,27 @@ export default function EditPollPage() {
   }, [isLoaded, fetchData]);
 
   async function handlePollSubmit(data: PollFormData) {
+    // Upload image first if one was selected
+    if (data.imageFile) {
+      const formData = new FormData();
+      formData.append('file', data.imageFile);
+
+      const uploadRes = await fetch(`/api/polls/${pollId}/upload`, {
+        method: 'POST',
+        headers: { 'x-admin-token': localStorage.getItem('adminToken') || '' },
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        const body = await uploadRes.json();
+        throw new Error(body.error?.message || 'Failed to upload image.');
+      }
+
+      const updatedPoll = await uploadRes.json();
+      setPoll(updatedPoll);
+    }
+
+    // Update title and description
     const result = await patch(`/api/polls/${pollId}`, {
       title: data.title,
       description: data.description || undefined,
@@ -69,7 +90,7 @@ export default function EditPollPage() {
     if (result.error) {
       throw new Error(result.error.message || 'Failed to update poll.');
     }
-    router.push('/admin');
+    if (result.data) setPoll(result.data as PollData);
   }
 
   function resetQuestionForm() {
@@ -155,15 +176,15 @@ export default function EditPollPage() {
     setQuestions(prev => prev.filter(q => q.id !== qId));
   }
 
-  async function handlePositionChange(questionId: string, position: { x: number; y: number; width: number; height: number }) {
+  const handlePositionChange = useCallback(async (questionId: string, position: { x: number; y: number; width: number; height: number }) => {
     await patch(`/api/polls/${pollId}/questions/${questionId}`, { position });
     setQuestions(prev => prev.map(q => q.id === questionId ? { ...q, position } : q));
-  }
+  }, [pollId, patch]);
 
-  async function handleRemoveFromCanvas(questionId: string) {
+  const handleRemoveFromCanvas = useCallback(async (questionId: string) => {
     await patch(`/api/polls/${pollId}/questions/${questionId}`, { position: null });
     setQuestions(prev => prev.map(q => q.id === questionId ? { ...q, position: null } : q));
-  }
+  }, [pollId, patch]);
 
   if (loading) {
     return (
