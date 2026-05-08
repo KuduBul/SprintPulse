@@ -131,7 +131,7 @@ export default function AdminLayout({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
           <Link
-            href="/admin"
+            href="/"
             style={{
               display: 'flex',
               alignItems: 'center',

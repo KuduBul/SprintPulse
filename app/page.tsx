@@ -161,7 +161,7 @@ export default function Home() {
 
           {/* Participant */}
           <Link
-            href="/admin"
+            href="/poll"
             style={{
               display: 'flex',
               flexDirection: 'column',
