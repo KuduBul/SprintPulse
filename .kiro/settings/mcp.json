@@ -28,7 +28,8 @@
         "browser_wait_for",
         "browser_network_requests",
         "browser_network_request",
-        "browser_network_request"
+        "browser_network_request",
+        "browser_tabs"
       ]
     }
   }

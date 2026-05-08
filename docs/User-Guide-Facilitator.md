@@ -1,4 +1,4 @@
-# Shoprite-X Polling App — Facilitator User Guide
+# SprintPulse — Facilitator User Guide
 
 ## Overview
 
@@ -232,4 +232,4 @@ The Results tab shows aggregated data per question:
 
 ---
 
-*Shoprite-X Polling App v0.1.0*
+*SprintPulse v1.0.0*

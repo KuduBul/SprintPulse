@@ -12,41 +12,44 @@ export default function Home() {
         justifyContent: 'center',
         padding: 'var(--space-8)',
         fontFamily: 'var(--font-family-sans)',
-        backgroundColor: 'var(--color-bg-primary)',
+        backgroundColor: 'var(--color-bg-secondary)',
       }}
     >
       <div
         style={{
           textAlign: 'center',
-          maxWidth: '640px',
+          maxWidth: '720px',
           width: '100%',
         }}
       >
-        <h1
-          style={{
-            fontSize: 'var(--font-size-3xl)',
-            fontWeight: 'var(--font-weight-bold)',
-            color: 'var(--color-text-primary)',
-            marginBottom: 'var(--space-3)',
-          }}
-        >
-          Shoprite-X Polling App
-        </h1>
+        {/* Logo */}
+        <div style={{ marginBottom: 'var(--space-6)', display: 'flex', justifyContent: 'center' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.svg"
+            alt="SprintPulse — Agile Polls & Retrospectives"
+            width={300}
+            height={80}
+            style={{ height: 'auto', maxWidth: '100%' }}
+          />
+        </div>
+
         <p
           style={{
             fontSize: 'var(--font-size-lg)',
             color: 'var(--color-text-secondary)',
-            marginBottom: 'var(--space-8)',
+            marginBottom: 'var(--space-10)',
+            lineHeight: 'var(--line-height-relaxed)',
           }}
         >
-          Live polling and facilitation tool for workshops and sessions.
+          Modern facilitation tool for live polling, retrospectives, and team engagement sessions.
         </p>
 
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: 'var(--space-4)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: 'var(--space-5)',
             width: '100%',
           }}
         >
@@ -58,17 +61,26 @@ export default function Home() {
               flexDirection: 'column',
               alignItems: 'center',
               gap: 'var(--space-3)',
-              padding: 'var(--space-6)',
-              backgroundColor: 'var(--color-bg-secondary)',
-              border: '2px solid var(--color-primary-200)',
-              borderRadius: 'var(--radius-lg)',
+              padding: 'var(--space-8) var(--space-6)',
+              backgroundColor: 'var(--color-bg-primary)',
+              border: '1px solid var(--color-border-default)',
+              borderRadius: 'var(--radius-xl)',
               textDecoration: 'none',
-              transition: 'border-color 0.2s, box-shadow 0.2s',
-              cursor: 'pointer',
+              transition: 'all var(--transition-normal)',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             <span
-              style={{ fontSize: '2.5rem', lineHeight: 1 }}
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: 'var(--radius-lg)',
+                backgroundColor: 'var(--color-primary-50)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem',
+              }}
               aria-hidden="true"
             >
               🛠️
@@ -87,6 +99,7 @@ export default function Home() {
                 fontSize: 'var(--font-size-sm)',
                 color: 'var(--color-text-secondary)',
                 textAlign: 'center',
+                lineHeight: 'var(--line-height-relaxed)',
               }}
             >
               Create and manage polls, questions, and canvas layouts
@@ -101,17 +114,26 @@ export default function Home() {
               flexDirection: 'column',
               alignItems: 'center',
               gap: 'var(--space-3)',
-              padding: 'var(--space-6)',
-              backgroundColor: 'var(--color-bg-secondary)',
-              border: '2px solid var(--color-success-200)',
-              borderRadius: 'var(--radius-lg)',
+              padding: 'var(--space-8) var(--space-6)',
+              backgroundColor: 'var(--color-bg-primary)',
+              border: '1px solid var(--color-border-default)',
+              borderRadius: 'var(--radius-xl)',
               textDecoration: 'none',
-              transition: 'border-color 0.2s, box-shadow 0.2s',
-              cursor: 'pointer',
+              transition: 'all var(--transition-normal)',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             <span
-              style={{ fontSize: '2.5rem', lineHeight: 1 }}
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: 'var(--radius-lg)',
+                backgroundColor: 'var(--color-secondary-50)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem',
+              }}
               aria-hidden="true"
             >
               📋
@@ -130,6 +152,7 @@ export default function Home() {
                 fontSize: 'var(--font-size-sm)',
                 color: 'var(--color-text-secondary)',
                 textAlign: 'center',
+                lineHeight: 'var(--line-height-relaxed)',
               }}
             >
               Run live sessions, control poll flow, and view real-time results
@@ -144,17 +167,26 @@ export default function Home() {
               flexDirection: 'column',
               alignItems: 'center',
               gap: 'var(--space-3)',
-              padding: 'var(--space-6)',
-              backgroundColor: 'var(--color-bg-secondary)',
-              border: '2px solid var(--color-warning-200)',
-              borderRadius: 'var(--radius-lg)',
+              padding: 'var(--space-8) var(--space-6)',
+              backgroundColor: 'var(--color-bg-primary)',
+              border: '1px solid var(--color-border-default)',
+              borderRadius: 'var(--radius-xl)',
               textDecoration: 'none',
-              transition: 'border-color 0.2s, box-shadow 0.2s',
-              cursor: 'pointer',
+              transition: 'all var(--transition-normal)',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             <span
-              style={{ fontSize: '2.5rem', lineHeight: 1 }}
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: 'var(--radius-lg)',
+                backgroundColor: 'var(--color-warning-50)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem',
+              }}
               aria-hidden="true"
             >
               ✋
@@ -173,6 +205,7 @@ export default function Home() {
                 fontSize: 'var(--font-size-sm)',
                 color: 'var(--color-text-secondary)',
                 textAlign: 'center',
+                lineHeight: 'var(--line-height-relaxed)',
               }}
             >
               Join a poll session and submit your responses
@@ -182,8 +215,8 @@ export default function Home() {
 
         <p
           style={{
-            marginTop: 'var(--space-6)',
-            fontSize: 'var(--font-size-xs)',
+            marginTop: 'var(--space-8)',
+            fontSize: 'var(--font-size-sm)',
             color: 'var(--color-text-muted)',
           }}
         >

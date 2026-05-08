@@ -1,4 +1,4 @@
-# Shoprite-X Polling App — Participant User Guide
+# SprintPulse — Participant User Guide
 
 ## Overview
 
@@ -105,4 +105,4 @@ Once you enter your name, the poll questions appear. Depending on the device:
 
 ---
 
-*Shoprite-X Polling App v0.1.0*
+*SprintPulse v1.0.0*

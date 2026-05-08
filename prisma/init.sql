@@ -1,4 +1,4 @@
--- Shoprite-X Polling App - Database Schema
+-- SprintPulse - Database Schema
 -- Run this in Supabase SQL Editor to create all tables
 
 -- Enable UUID extension

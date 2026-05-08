@@ -1,4 +1,4 @@
--- Seed data for testing the Shoprite-X Polling App
+-- Seed data for testing SprintPulse
 -- Run this AFTER init.sql in Supabase SQL Editor
 
 -- Create a sample poll
@@ -6,7 +6,7 @@ INSERT INTO "Poll" ("id", "title", "description", "facilitatorState", "isDeleted
 VALUES (
   'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
   'Team Retrospective - Sprint 42',
-  'End of sprint retrospective for the Shoprite-X development team. Share your thoughts on what went well and what we can improve.',
+  'End of sprint retrospective for the SprintPulse development team. Share your thoughts on what went well and what we can improve.',
   '{"_v":1,"votingOpen":true,"liveResults":false,"anonymise":true,"revealStage":"HIDDEN"}',
   false,
   NOW(),

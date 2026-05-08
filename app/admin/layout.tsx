@@ -47,9 +47,10 @@ export default function AdminLayout({
               fontSize: 'var(--font-size-2xl)',
               fontWeight: 'var(--font-weight-bold)',
               marginBottom: 'var(--space-4)',
+              color: 'var(--color-primary-800)',
             }}
           >
-            Admin Access
+            SprintPulse
           </h1>
           <p
             style={{
@@ -57,7 +58,7 @@ export default function AdminLayout({
               marginBottom: 'var(--space-6)',
             }}
           >
-            Enter the admin token to access the polling dashboard.
+            Enter the admin token to access the dashboard.
           </p>
           <form
             onSubmit={(e) => {
@@ -128,24 +129,30 @@ export default function AdminLayout({
         }}
         aria-label="Admin navigation"
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
           <Link
             href="/admin"
             style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--space-2)',
               fontSize: 'var(--font-size-lg)',
               fontWeight: 'var(--font-weight-bold)',
-              color: 'var(--color-text-primary)',
+              color: 'var(--color-primary-800)',
               textDecoration: 'none',
             }}
           >
-            Shoprite-X Polling
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon.svg" alt="" width={28} height={28} style={{ borderRadius: 'var(--radius-sm)' }} />
+            SprintPulse
           </Link>
           <Link
             href="/admin"
             style={{
-              color: 'var(--color-primary-700)',
+              color: 'var(--color-text-secondary)',
               textDecoration: 'none',
               fontWeight: 'var(--font-weight-medium)',
+              fontSize: 'var(--font-size-sm)',
             }}
           >
             Polls

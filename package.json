@@ -1,5 +1,5 @@
 {
-  "name": "shoprite-x-polling-app",
+  "name": "sprintpulse",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -14,6 +14,7 @@
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "@rollup/wasm-node": "4.60.2",
+    "@supabase/supabase-js": "^2.105.3",
     "next": "^14.2.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",

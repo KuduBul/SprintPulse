@@ -1,8 +1,8 @@
-# Shoprite-X Polling App — System Administrator Guide
+# SprintPulse — System Administrator Guide
 
 ## Overview
 
-As a system administrator, you are responsible for deploying, configuring, and maintaining the Shoprite-X Polling App. This guide covers setup, environment configuration, database management, and operational tasks.
+As a system administrator, you are responsible for deploying, configuring, and maintaining SprintPulse. This guide covers setup, environment configuration, database management, and operational tasks.
 
 ---
 
@@ -247,4 +247,4 @@ LIMIT 50;
 
 ---
 
-*Shoprite-X Polling App v0.1.0*
+*SprintPulse v1.0.0*

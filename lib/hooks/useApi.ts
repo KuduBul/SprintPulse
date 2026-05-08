@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { useAdminToken } from './useAdminToken';
 
 interface ApiResponse<T = unknown> {
@@ -12,9 +12,16 @@ interface ApiResponse<T = unknown> {
 /**
  * Custom hook for making authenticated API calls.
  * Automatically includes the `x-admin-token` header from localStorage.
+ * Uses a ref for the token to keep callback references stable.
  */
 export function useApi() {
   const { token, isLoaded } = useAdminToken();
+  const tokenRef = useRef(token);
+
+  // Keep the ref in sync with the latest token value
+  useEffect(() => {
+    tokenRef.current = token;
+  }, [token]);
 
   const request = useCallback(
     async <T = unknown>(
@@ -26,8 +33,8 @@ export function useApi() {
         ...(options.headers as Record<string, string>),
       };
 
-      if (token) {
-        headers['x-admin-token'] = token;
+      if (tokenRef.current) {
+        headers['x-admin-token'] = tokenRef.current;
       }
 
       try {
@@ -59,7 +66,7 @@ export function useApi() {
         };
       }
     },
-    [token]
+    []
   );
 
   const get = useCallback(

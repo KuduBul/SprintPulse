@@ -1,38 +1,39 @@
 /* ==========================================================================
-   Shoprite-X Design Tokens
-   Enterprise internal tool — Polling & Live Facilitation App
+   SprintPulse Design Tokens
+   Agile Polls & Retrospectives — Modern Facilitation Tool
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
    Colour Palette
+   Calm blues and teals — trust, clarity, focus
    All text/background combinations meet WCAG AA contrast ratio ≥ 4.5:1
    -------------------------------------------------------------------------- */
 :root {
-  /* Primary — Deep blue for primary actions and branding */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  /* Primary — Calm blue gradient (from logo: #00c6ff → #0052d4) */
+  --color-primary-50: #eef8ff;
+  --color-primary-100: #d9efff;
+  --color-primary-200: #bce3ff;
+  --color-primary-300: #8ed3ff;
+  --color-primary-400: #59b8ff;
+  --color-primary-500: #3396ff;
+  --color-primary-600: #1a75f5;
+  --color-primary-700: #145de1;
+  --color-primary-800: #174bb6;
+  --color-primary-900: #19418f;
 
-  /* Secondary — Teal for secondary actions and accents */
-  --color-secondary-50: #f0fdfa;
-  --color-secondary-100: #ccfbf1;
-  --color-secondary-200: #99f6e4;
-  --color-secondary-300: #5eead4;
-  --color-secondary-400: #2dd4bf;
-  --color-secondary-500: #14b8a6;
-  --color-secondary-600: #0d9488;
-  --color-secondary-700: #0f766e;
-  --color-secondary-800: #115e59;
-  --color-secondary-900: #134e4a;
+  /* Secondary — Teal for accents and secondary actions */
+  --color-secondary-50: #effefb;
+  --color-secondary-100: #c8fff4;
+  --color-secondary-200: #91feea;
+  --color-secondary-300: #52f5dc;
+  --color-secondary-400: #20e0c9;
+  --color-secondary-500: #08c4b0;
+  --color-secondary-600: #039e91;
+  --color-secondary-700: #087e75;
+  --color-secondary-800: #0c645f;
+  --color-secondary-900: #0f534e;
 
-  /* Success — Green for positive states */
+  /* Success — Soft green for positive states */
   --color-success-50: #f0fdf4;
   --color-success-100: #dcfce7;
   --color-success-200: #bbf7d0;
@@ -44,7 +45,7 @@
   --color-success-800: #166534;
   --color-success-900: #14532d;
 
-  /* Error — Red for destructive actions and errors */
+  /* Error — Muted red (not harsh) for destructive actions */
   --color-error-50: #fef2f2;
   --color-error-100: #fee2e2;
   --color-error-200: #fecaca;
@@ -56,7 +57,7 @@
   --color-error-800: #991b1b;
   --color-error-900: #7f1d1d;
 
-  /* Warning — Amber for caution states */
+  /* Warning — Soft amber for caution states */
   --color-warning-50: #fffbeb;
   --color-warning-100: #fef3c7;
   --color-warning-200: #fde68a;
@@ -68,22 +69,21 @@
   --color-warning-800: #92400e;
   --color-warning-900: #78350f;
 
-  /* Neutral — Grey scale for text, borders, backgrounds */
+  /* Neutral — Cool grey with subtle blue tint */
   --color-neutral-0: #ffffff;
-  --color-neutral-50: #f9fafb;
-  --color-neutral-100: #f3f4f6;
-  --color-neutral-200: #e5e7eb;
-  --color-neutral-300: #d1d5db;
-  --color-neutral-400: #9ca3af;
-  --color-neutral-500: #6b7280;
-  --color-neutral-600: #4b5563;
-  --color-neutral-700: #374151;
-  --color-neutral-800: #1f2937;
-  --color-neutral-900: #111827;
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
 
   /* --------------------------------------------------------------------------
      Semantic Colour Assignments
-     These map palette colours to UI roles for consistent usage
      -------------------------------------------------------------------------- */
   --color-text-primary: var(--color-neutral-900);       /* 15.4:1 on white */
   --color-text-secondary: var(--color-neutral-600);     /* 7.0:1 on white */
@@ -101,7 +101,7 @@
   --color-border-focus: var(--color-primary-600);
 
   /* --------------------------------------------------------------------------
-     Spacing Scale (4px base unit)
+     Spacing Scale (4px base unit) — generous for airy feel
      -------------------------------------------------------------------------- */
   --space-0: 0;
   --space-1: 0.25rem;   /* 4px */
@@ -118,10 +118,10 @@
   --space-24: 6rem;     /* 96px */
 
   /* --------------------------------------------------------------------------
-     Typography
+     Typography — Inter (modern sans-serif for digital dashboards)
      -------------------------------------------------------------------------- */
-  --font-family-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-family-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono',
     Menlo, Consolas, monospace;
 
@@ -147,23 +147,25 @@
   --font-weight-bold: 700;
 
   /* --------------------------------------------------------------------------
-     Border Radius
+     Border Radius — rounded corners for friendly feel
      -------------------------------------------------------------------------- */
-  --radius-sm: 0.25rem;   /* 4px */
-  --radius-md: 0.375rem;  /* 6px */
-  --radius-lg: 0.5rem;    /* 8px */
-  --radius-xl: 0.75rem;   /* 12px */
+  --radius-sm: 0.375rem;  /* 6px */
+  --radius-md: 0.5rem;    /* 8px */
+  --radius-lg: 0.75rem;   /* 12px */
+  --radius-xl: 1rem;      /* 16px */
+  --radius-2xl: 1.25rem;  /* 20px */
   --radius-full: 9999px;
 
   /* --------------------------------------------------------------------------
-     Shadows
+     Shadows — subtle depth
      -------------------------------------------------------------------------- */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+  --shadow-md: 0 4px 6px -1px rgb(15 23 42 / 0.06), 0 2px 4px -2px rgb(15 23 42 / 0.04);
+  --shadow-lg: 0 10px 15px -3px rgb(15 23 42 / 0.08), 0 4px 6px -4px rgb(15 23 42 / 0.04);
+  --shadow-xl: 0 20px 25px -5px rgb(15 23 42 / 0.08), 0 8px 10px -6px rgb(15 23 42 / 0.04);
 
   /* --------------------------------------------------------------------------
-     Transitions
+     Transitions — smooth micro-interactions
      -------------------------------------------------------------------------- */
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
@@ -174,7 +176,7 @@
      -------------------------------------------------------------------------- */
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
-  --focus-ring-color: var(--color-primary-600);
+  --focus-ring-color: var(--color-primary-500);
 }
 
 /* ==========================================================================
@@ -210,13 +212,9 @@ body {
 }
 
 /* ==========================================================================
-   Focus Indicator Styles (WCAG 2.1 — Requirement 13.5)
-   Visible, high-contrast focus ring on all interactive elements.
-   Uses a 2px solid outline with offset for clear visibility against
-   any background colour.
+   Focus Indicator Styles (WCAG 2.1)
    ========================================================================== */
 
-/* Remove default browser outline and apply custom focus ring */
 :focus {
   outline: none;
 }
@@ -227,7 +225,6 @@ body {
   border-radius: var(--radius-sm);
 }
 
-/* Specific interactive element focus styles */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
@@ -245,7 +242,6 @@ textarea:focus-visible,
   border-radius: var(--radius-sm);
 }
 
-/* High-contrast focus for elements on dark backgrounds */
 .focus-inverse:focus-visible {
   outline-color: var(--color-neutral-0);
 }
@@ -254,7 +250,6 @@ textarea:focus-visible,
    Accessibility Utilities
    ========================================================================== */
 
-/* Visually hidden but accessible to screen readers */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -267,7 +262,6 @@ textarea:focus-visible,
   border-width: 0;
 }
 
-/* Skip to main content link */
 .skip-link {
   position: absolute;
   top: -100%;
@@ -298,7 +292,7 @@ textarea:focus-visible,
   }
 }
 
-/* High contrast mode support for focus indicators */
+/* High contrast mode support */
 @media (forced-colors: active) {
   :focus-visible {
     outline: 3px solid CanvasText;
@@ -308,7 +302,6 @@ textarea:focus-visible,
 
 /* ==========================================================================
    Interactive Element Base Styles
-   Ensure all buttons and links have consistent focus and keyboard behaviour
    ========================================================================== */
 
 button,
@@ -321,7 +314,6 @@ button:disabled,
   cursor: not-allowed;
 }
 
-/* Ensure links styled as buttons also get proper focus treatment */
 a[role="button"]:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: var(--focus-ring-offset);
@@ -329,11 +321,31 @@ a[role="button"]:focus-visible {
 }
 
 /* ==========================================================================
-   Animations
+   Animations — subtle micro-interactions
    ========================================================================== */
 
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
   }
 }
