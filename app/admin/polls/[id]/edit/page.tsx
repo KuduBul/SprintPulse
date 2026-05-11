@@ -11,6 +11,7 @@ interface PollData {
   title: string;
   description: string | null;
   backgroundImageUrl: string | null;
+  teamId: string | null;
 }
 
 interface QuestionData {
@@ -81,11 +82,16 @@ export default function EditPollPage() {
       setPoll(updatedPoll);
     }
 
-    // Update title and description
-    const result = await patch(`/api/polls/${pollId}`, {
+    // Update title, description, and teamId
+    const updateBody: Record<string, unknown> = {
       title: data.title,
       description: data.description || undefined,
-    });
+    };
+    if (data.teamId) {
+      updateBody.teamId = data.teamId;
+    }
+
+    const result = await patch(`/api/polls/${pollId}`, updateBody);
     if (result.error) {
       throw new Error(result.error.message || 'Failed to update poll.');
     }
@@ -220,9 +226,10 @@ export default function EditPollPage() {
           Edit Poll
         </h1>
         <PollForm
-          initialData={{ title: poll.title, description: poll.description ?? '', backgroundImageUrl: poll.backgroundImageUrl }}
+          initialData={{ title: poll.title, description: poll.description ?? '', backgroundImageUrl: poll.backgroundImageUrl, teamId: poll.teamId }}
           onSubmit={handlePollSubmit}
           submitLabel="Save Changes"
+          isEdit={true}
         />
       </section>
 

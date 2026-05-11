@@ -50,6 +50,8 @@ export interface PollService {
   getPoll(id: string, userId: string): Promise<Poll | null>;
   listPolls(userId: string): Promise<Poll[]>;
   listPublicPolls(): Promise<Poll[]>;
+  listPublicPollsByTeam(teamId: string): Promise<Poll[]>;
+  listPollsByTeam(userId: string, teamId: string): Promise<Poll[]>;
   getPublicPoll(id: string): Promise<PublicPollView | null>;
 }
 
@@ -66,6 +68,7 @@ export function createPollService(): PollService {
             title: data.title,
             description: data.description ?? null,
             userId,
+            teamId: data.teamId ?? null,
             facilitatorState: DEFAULT_FACILITATOR_STATE as unknown as Prisma.InputJsonValue,
           },
         });
@@ -102,6 +105,7 @@ export function createPollService(): PollService {
             ...(data.title !== undefined && { title: data.title }),
             ...(data.description !== undefined && { description: data.description }),
             ...(data.backgroundImageUrl !== undefined && { backgroundImageUrl: data.backgroundImageUrl }),
+            ...(data.teamId !== undefined && { teamId: data.teamId }),
           },
         });
 
@@ -244,6 +248,26 @@ export function createPollService(): PollService {
     async listPublicPolls(): Promise<Poll[]> {
       return prisma.poll.findMany({
         where: { isDeleted: false },
+        orderBy: { createdAt: 'desc' },
+      });
+    },
+
+    async listPublicPollsByTeam(teamId: string): Promise<Poll[]> {
+      return prisma.poll.findMany({
+        where: {
+          isDeleted: false,
+          OR: [
+            { teamId },
+            { teamId: null },
+          ],
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+    },
+
+    async listPollsByTeam(userId: string, teamId: string): Promise<Poll[]> {
+      return prisma.poll.findMany({
+        where: { userId, teamId, isDeleted: false },
         orderBy: { createdAt: 'desc' },
       });
     },

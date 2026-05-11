@@ -12,12 +12,35 @@ export const PositionSchema = z.object({
 });
 
 /**
+ * Schema for creating a new team.
+ */
+export const CreateTeamSchema = z.object({
+  name: z.string().min(1).max(100),
+});
+
+/**
+ * Schema for updating an existing team.
+ */
+export const UpdateTeamSchema = z.object({
+  name: z.string().min(1).max(100),
+});
+
+/**
+ * Schema for validating a team PIN.
+ */
+export const ValidatePinSchema = z.object({
+  pin: z.string().min(4).max(6),
+});
+
+/**
  * Schema for creating a new poll.
  * Title: 1–200 chars (required), Description: 0–1000 chars (optional).
+ * teamId: required UUID for team assignment.
  */
 export const CreatePollSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(1000).optional(),
+  teamId: z.string().uuid(),
 });
 
 /**
@@ -28,6 +51,7 @@ export const UpdatePollSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(1000).optional(),
   backgroundImageUrl: z.string().url().optional(),
+  teamId: z.string().uuid().optional(),
 });
 
 /**
@@ -87,6 +111,9 @@ export const FacilitatorStateSchema = z.object({
 
 // Inferred TypeScript types
 export type Position = z.infer<typeof PositionSchema>;
+export type CreateTeamInput = z.infer<typeof CreateTeamSchema>;
+export type UpdateTeamInput = z.infer<typeof UpdateTeamSchema>;
+export type ValidatePinInput = z.infer<typeof ValidatePinSchema>;
 export type CreatePollInput = z.infer<typeof CreatePollSchema>;
 export type UpdatePollInput = z.infer<typeof UpdatePollSchema>;
 export type CreateQuestionInput = z.infer<typeof CreateQuestionSchema>;

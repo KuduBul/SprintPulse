@@ -82,6 +82,17 @@ export default function AdminLayout({
             Polls
           </Link>
           <Link
+            href="/admin/teams"
+            style={{
+              color: 'var(--color-text-secondary)',
+              textDecoration: 'none',
+              fontWeight: 'var(--font-weight-medium)',
+              fontSize: 'var(--font-size-sm)',
+            }}
+          >
+            Teams
+          </Link>
+          <Link
             href="/admin/profile"
             style={{
               color: 'var(--color-text-secondary)',

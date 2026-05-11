@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/middleware/authGuard';
-import { pollService } from '@/lib/services';
+import { pollService, teamService } from '@/lib/services';
 import { CreatePollSchema } from '@/lib/validators/schemas';
 import { validationError, internalError, formatZodError } from '@/lib/api/errors';
 
@@ -18,7 +18,7 @@ export const GET = withAuth(async (_request: Request, context: { userId: string 
 
 /**
  * POST /api/polls — Create a new poll (auth required).
- * Body: { title: string, description?: string }
+ * Body: { title: string, description?: string, teamId: string }
  */
 export const POST = withAuth(async (request: Request, context: { userId: string }) => {
   try {
@@ -27,6 +27,20 @@ export const POST = withAuth(async (request: Request, context: { userId: string 
 
     if (!result.success) {
       return validationError(formatZodError(result.error));
+    }
+
+    // Validate team exists and is owned by the user
+    const team = await teamService.getTeam(result.data.teamId, context.userId);
+    if (!team) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'FORBIDDEN',
+            message: 'Cannot assign to a team you do not own',
+          },
+        },
+        { status: 403 }
+      );
     }
 
     const poll = await pollService.createPoll(result.data, context.userId);
