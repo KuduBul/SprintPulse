@@ -90,6 +90,7 @@ export function ParticipantForm({
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   // Facilitator state (polled)
   const [facilitatorState, setFacilitatorState] = useState<FacilitatorState>(initialFacilitatorState);
   // Viewport
@@ -196,6 +197,7 @@ export function ParticipantForm({
     if (!validate()) return;
 
     setIsSubmitting(true);
+    setSubmitError(null);
 
     const answers: Answer[] = poll.questions.map((question) => {
       const selection = selections[question.id];
@@ -217,8 +219,8 @@ export function ParticipantForm({
         isTest: isTestMode,
       });
       setIsSubmitted(true);
-    } catch {
-      // Error handling is done by the parent
+    } catch (err: any) {
+      setSubmitError(err?.message || 'Submission failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -351,6 +353,25 @@ export function ParticipantForm({
           onCustomTextChange={handleCustomTextChange}
           disabled={votingClosed}
         />
+      )}
+
+      {/* Submit Error */}
+      {submitError && (
+        <div
+          role="alert"
+          style={{
+            marginTop: 'var(--space-4)',
+            padding: 'var(--space-3) var(--space-4)',
+            backgroundColor: 'var(--color-error-50)',
+            border: '1px solid var(--color-error-300)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--color-error-700)',
+            fontSize: 'var(--font-size-sm)',
+            textAlign: 'center',
+          }}
+        >
+          {submitError}
+        </div>
       )}
 
       {/* Actions */}
