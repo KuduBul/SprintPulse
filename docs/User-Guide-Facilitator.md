@@ -2,19 +2,57 @@
 
 ## Overview
 
-As a facilitator, you manage polls, control live sessions, and view results. This guide covers everything you need to run engaging workshops, retrospectives, and PI events.
+As a facilitator, you create teams, manage polls, control live sessions, and view results. This guide covers everything you need to run engaging workshops, retrospectives, and PI events using SprintPulse.
 
 ---
 
 ## Getting Started
 
-### Accessing the Admin Dashboard
+### Creating Your Account
 
-1. Navigate to your app URL followed by `/admin` (e.g., `https://your-app.vercel.app/admin`)
-2. Enter the **admin token** provided by your system administrator
+1. Navigate to your app URL and click **Facilitator** (e.g., `https://sprintpulse-app.vercel.app`)
+2. Click the **Register** tab
+3. Enter your **display name**, **email**, and **password** (minimum 8 characters)
+4. Click **Create Account**
+5. You're now logged in and can start creating teams and polls
+
+### Signing In
+
+1. Navigate to the app and click **Facilitator**
+2. Enter your **email** and **password**
 3. Click **Sign In**
 
-Your token is stored in your browser — you won't need to re-enter it unless you clear your browser data.
+Your session persists across browser tabs and page refreshes. Click **Logout** in the top-right to sign out.
+
+---
+
+## Managing Teams
+
+Teams let you organize polls for different groups. Each team has a unique PIN that participants use to access their team's polls.
+
+### Creating a Team
+
+1. Click **Teams** in the navigation bar
+2. Enter a team name (e.g., "Sprint Team Alpha") in the input field
+3. Click **Create Team**
+4. A unique PIN is auto-generated (e.g., "A3K7")
+
+### Sharing the Team PIN
+
+- The PIN is displayed prominently next to each team name
+- Click the **copy** button to copy the PIN to your clipboard
+- Share the PIN with participants verbally, via chat, or on screen
+
+### Renaming a Team
+
+1. On the Teams page, click the team name to edit it
+2. Type the new name and confirm
+
+### Deleting a Team
+
+1. Click **Delete** next to the team
+2. Confirm the action
+3. Polls previously assigned to this team become visible to all participants
 
 ---
 
@@ -24,6 +62,7 @@ Your token is stored in your browser — you won't need to re-enter it unless yo
 
 1. From the admin dashboard, click **Create New Poll**
 2. Fill in:
+   - **Team** (required) — select which team this poll belongs to
    - **Title** (required, max 200 characters) — displayed to participants
    - **Description** (optional, max 1000 characters) — context for participants
    - **Background Image** (optional) — JPEG, PNG, or WebP, max 5 MB
@@ -33,12 +72,14 @@ Your token is stored in your browser — you won't need to re-enter it unless yo
 
 1. Find the poll in the dashboard list
 2. Click **Edit**
-3. Update the title, description, or background image
+3. Update the title, description, team assignment, or background image
 4. Click **Save Changes**
 
-### Cloning a Poll
+### Filtering Polls by Team
 
-Use this to reuse a poll structure without affecting the original:
+- Use the **team filter dropdown** at the top of the poll list to show only polls for a specific team
+
+### Cloning a Poll
 
 1. Click **Clone** next to the poll
 2. A new poll is created with "(Copy)" appended to the title
@@ -51,12 +92,12 @@ To clear all participant responses (e.g., for a fresh session):
 1. Click **Reset** next to the poll
 2. Confirm the action
 3. All responses are permanently removed
+4. Participants can now re-submit (they'll need to refresh their page)
 
 ### Deleting a Poll
 
 1. Click **Delete** next to the poll
 2. Confirm the action
-3. The poll is soft-deleted (hidden from views but retained for 30 days)
 
 ---
 
@@ -64,76 +105,48 @@ To clear all participant responses (e.g., for a fresh session):
 
 ### Adding Questions
 
-1. Navigate to the poll's **Edit** page (click "Edit" from the admin dashboard)
+1. Navigate to the poll's **Edit** page
 2. Scroll down to the **Questions** section
 3. Click **+ Add Question**
 4. Fill in:
-   - **Question Text** (required, max 500 characters) — the prompt shown to participants
-   - **Options** (2–10 predefined choices) — click "+ Add Option" to add more, "✕" to remove
-   - **Allow custom free-text answer** (checkbox) — adds a "Custom" option where participants can type their own response
+   - **Question Text** (required, max 500 characters)
+   - **Options** (2–10 predefined choices)
+   - **Allow custom free-text answer** (checkbox)
 5. Click **Add Question**
 
-### Editing Questions
+### Editing and Deleting Questions
 
-1. Find the question in the list on the Edit page
-2. Click **Edit** next to the question
-3. Modify the text, options, or custom setting
-4. Click **Update Question**
-
-### Deleting Questions
-
-1. Click **Delete** next to the question
-2. Confirm the deletion
+- Click **Edit** next to a question to modify it
+- Click **Delete** to remove it (with confirmation)
 
 ### Question Limits
 
-- Minimum 1, maximum 20 questions per poll
-- Minimum 2, maximum 10 options per question
+- Maximum 20 questions per poll
+- 2–10 options per question
 - Question text: max 500 characters
 
 ---
 
 ## Visual Canvas Editor
 
-The canvas editor appears at the bottom of the Edit page once you have at least one question. It lets you visually position questions on a background image.
+Position questions visually on a background image. The canvas editor appears on the Edit page once you have at least one question.
 
-### Placing Questions on the Canvas
+### Placing Questions
 
-On desktop (1024px+):
-
-1. Scroll down to the **Visual Canvas Editor** section on the Edit page
-2. **Unplaced questions** appear in the sidebar on the left
-3. **Drag** a question from the sidebar onto the canvas area
-4. The question card appears where you dropped it
-5. Positions are saved automatically
+1. Scroll to the **Visual Canvas Editor** section
+2. Drag questions from the **sidebar** onto the canvas
+3. Positions are saved automatically
 
 ### Repositioning and Resizing
 
-- **Drag** a placed question to move it
-- **Resize** using the corner handles on the question card
-- Positions are stored as percentages (0–100%), so they scale across screen sizes
-
-### Removing from Canvas
-
-- **Right-click** a placed question and select "Remove from canvas"
-- The question returns to the sidebar (it's not deleted, just unplaced)
-- Unplaced questions still appear in the participant's list view
+- Drag a placed question to move it
+- Use corner handles to resize
+- Right-click → "Remove from canvas" to unplace
 
 ### Canvas Background
 
-- Upload a background image via the poll metadata form (JPEG, PNG, or WebP, max 5 MB)
-- If no image is set, a neutral grey canvas is displayed
-- If the image fails to load, a placeholder with an error message is shown
-
-### Responsive Behaviour
-
-| Viewport | Behaviour |
-|----------|-----------|
-| Desktop (≥1024px) | Full canvas editor with drag-and-drop |
-| Tablet (768–1023px) | View-only canvas mode |
-| Mobile (<768px) | Vertical scrollable list (no canvas) |
-
-**Note:** If the browser doesn't support the Drag and Drop API, a warning banner is shown and coordinate input fields are provided as a fallback.
+- Upload via the poll form (JPEG, PNG, or WebP, max 5 MB)
+- Questions are positioned as percentages, so they scale across screen sizes
 
 ---
 
@@ -142,7 +155,7 @@ On desktop (1024px+):
 ### Opening the Facilitator Dashboard
 
 1. Click **Facilitate** next to the poll
-2. The facilitator dashboard opens with live controls
+2. The live control dashboard opens
 
 ### Session Controls
 
@@ -150,73 +163,42 @@ On desktop (1024px+):
 |---------|---------|-------------|
 | **Voting** | Closed | Opens/closes participant submissions |
 | **Live Results** | Off | Auto-refreshes results every 3 seconds |
-| **Anonymisation** | On | Replaces names with "Participant 1, 2, ..." |
+| **Anonymisation** | On | Hides participant names in results |
 
 ### Reveal Stages
-
-Control how much detail participants and viewers see:
 
 | Stage | What's Shown |
 |-------|-------------|
 | **HIDDEN** | No results visible |
 | **COUNTS** | Aggregated totals per option |
-| **DETAILS** | Full results including free-text responses and names (if anonymisation is off) |
-
-### Live Statistics
-
-The dashboard shows in real time:
-- **Participant count** — unique participants who submitted
-- **Submission count** — total individual question responses
+| **DETAILS** | Full results including free-text and names |
 
 ### Typical Session Flow
 
-1. **Before the session:** Create poll, add questions, position on canvas
-2. **Start session:** Open the facilitator dashboard
-3. **Share the poll URL** with participants (e.g., via chat or screen share)
-4. **Open voting** — participants can now submit
-5. **Monitor** submissions via the live statistics
-6. **Close voting** when ready (participants are notified within 5 seconds)
-7. **Reveal results** progressively: HIDDEN → COUNTS → DETAILS
-8. **Toggle anonymisation** off if you want to show who said what
+1. Create team → create poll → add questions → position on canvas
+2. Share the **team PIN** with participants
+3. Open the facilitator dashboard → **Open voting**
+4. Monitor submissions via live statistics
+5. **Close voting** when ready
+6. **Reveal results** progressively: HIDDEN → COUNTS → DETAILS
 
 ---
 
-## Test Mode
+## Profile Management
 
-Preview the participant experience without polluting real data:
-
-1. Click **Preview as Participant** in the facilitator dashboard
-2. A new tab opens with `?testMode=true`
-3. Submit test responses — they're tagged as test data
-4. View test responses in the **Test Responses** tab
-5. Click **Clear Test Responses** to remove them (real data is unaffected)
-
----
-
-## Viewing Results
-
-### Results Tab
-
-The Results tab shows aggregated data per question:
-- Option counts and percentages (bar chart)
-- Free-text responses grouped under "Custom"
-- "No responses yet" for questions with zero submissions
-
-### Privacy Controls
-
-- When **anonymisation is on**: No real names appear anywhere
-- When **anonymisation is off** + **DETAILS** reveal: Names shown alongside responses
-- Free-text section is hidden when no custom entries exist
+1. Click **Profile** in the navigation bar
+2. View your email (read-only) and edit your display name
+3. Click **Save Changes**
 
 ---
 
 ## Tips
 
-- Always test your poll before a live session using Test Mode
-- Keep voting open long enough for all participants to submit
+- Create separate teams for different groups (e.g., "Dev Team", "Design Team")
+- Share the team PIN at the start of each session
+- Test your poll before going live using a different browser/incognito window
 - Use the HIDDEN → COUNTS → DETAILS progression to build suspense
-- Enable anonymisation for sensitive topics to encourage honest feedback
-- The "Another facilitator session may be active" warning appears if multiple people open the facilitator view — changes use last-write-wins
+- Enable anonymisation for sensitive topics
 
 ---
 
@@ -224,12 +206,12 @@ The Results tab shows aggregated data per question:
 
 | Issue | Solution |
 |-------|----------|
-| "Invalid or missing admin token" | Re-enter your admin token on the login page |
+| Can't sign in | Check email/password; try resetting via Supabase |
+| Participants can't see polls | Ensure they entered the correct team PIN |
 | Results not updating | Enable "Live Results" toggle |
 | Participants can't submit | Check that voting is open |
-| Poll not showing for participants | Ensure the poll isn't deleted |
-| Connection lost | Check your internet; the app retries automatically |
+| Reset didn't work | Participants need to refresh their page after a reset |
 
 ---
 
-*SprintPulse v1.0.0*
+*SprintPulse v2.0.0*
