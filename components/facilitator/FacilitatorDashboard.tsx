@@ -216,22 +216,6 @@ export function FacilitatorDashboard({ pollId, poll, questions }: FacilitatorDas
         </button>
       </div>
 
-      {/* Warning: another facilitator session */}
-      <div
-        role="alert"
-        style={{
-          padding: 'var(--space-3) var(--space-4)',
-          backgroundColor: 'var(--color-warning-50)',
-          border: '1px solid var(--color-warning-300)',
-          borderRadius: 'var(--radius-md)',
-          marginBottom: 'var(--space-4)',
-          color: 'var(--color-warning-800)',
-          fontSize: 'var(--font-size-sm)',
-        }}
-      >
-        Another facilitator session may be active. Changes use last-write-wins.
-      </div>
-
       {/* No questions warning */}
       {!hasQuestions && (
         <div
