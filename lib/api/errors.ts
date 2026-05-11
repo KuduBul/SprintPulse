@@ -58,6 +58,23 @@ export function unauthorizedError(
 }
 
 /**
+ * 403 — Forbidden (insufficient permissions).
+ */
+export function forbiddenError(
+  message = 'You do not have permission to perform this action'
+): NextResponse<ApiError> {
+  return NextResponse.json(
+    {
+      error: {
+        code: 'FORBIDDEN',
+        message,
+      },
+    },
+    { status: 403 }
+  );
+}
+
+/**
  * 404 — Resource not found.
  */
 export function notFoundError(

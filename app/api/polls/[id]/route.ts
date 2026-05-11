@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/middleware/authGuard';
-import { pollService } from '@/lib/services';
+import { pollService, teamService } from '@/lib/services';
 import { UpdatePollSchema } from '@/lib/validators/schemas';
 import { validationError, notFoundError, internalError, formatZodError } from '@/lib/api/errors';
 
@@ -24,7 +24,7 @@ export const GET = withAuth(async (_request: Request, context: { userId: string;
 
 /**
  * PATCH /api/polls/[id] — Update a poll (auth required, ownership enforced).
- * Body: { title?: string, description?: string, backgroundImageUrl?: string }
+ * Body: { title?: string, description?: string, backgroundImageUrl?: string, teamId?: string }
  */
 export const PATCH = withAuth(async (request: Request, context: { userId: string; params?: { id: string } }) => {
   try {
@@ -34,6 +34,22 @@ export const PATCH = withAuth(async (request: Request, context: { userId: string
 
     if (!result.success) {
       return validationError(formatZodError(result.error));
+    }
+
+    // Validate team ownership if teamId is provided
+    if (result.data.teamId) {
+      const team = await teamService.getTeam(result.data.teamId, context.userId);
+      if (!team) {
+        return NextResponse.json(
+          {
+            error: {
+              code: 'FORBIDDEN',
+              message: 'Cannot assign to a team you do not own',
+            },
+          },
+          { status: 403 }
+        );
+      }
     }
 
     const poll = await pollService.updatePoll(id, result.data, context.userId);

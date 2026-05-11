@@ -8,6 +8,21 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model Team {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(100)
+  pin       String   @unique @db.VarChar(6)
+  userId    String
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  polls     Poll[]
+
+  @@index([userId])
+  @@index([pin])
+}
+
 model Poll {
   id                 String     @id @default(uuid())
   userId             String
@@ -16,14 +31,17 @@ model Poll {
   backgroundImageUrl String?
   facilitatorState   Json       @default("{\"_v\":1,\"votingOpen\":false,\"liveResults\":false,\"anonymise\":true,\"revealStage\":\"HIDDEN\"}")
   isDeleted          Boolean    @default(false)
+  teamId             String?
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
 
+  team               Team?      @relation(fields: [teamId], references: [id])
   questions          Question[]
   responses          Response[]
   auditLogs          AuditLog[]
 
   @@index([userId])
+  @@index([teamId])
 }
 
 model Question {

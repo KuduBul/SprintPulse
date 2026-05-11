@@ -9,11 +9,10 @@ export default function NewPollPage() {
   const { post } = useApi();
 
   async function handleSubmit(data: PollFormData) {
-    // TODO: Image upload to Supabase Storage will be wired in task 15.1.
-    // For now, we only send title and description.
     const result = await post('/api/polls', {
       title: data.title,
       description: data.description || undefined,
+      teamId: data.teamId,
     });
 
     if (result.error) {

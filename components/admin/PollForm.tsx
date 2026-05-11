@@ -2,11 +2,13 @@
 
 import { useState, useRef, FormEvent } from 'react';
 import { isAllowedImageType, isAllowedImageSize } from '@/lib/validators/imageValidator';
+import { TeamSelector } from './TeamSelector';
 
 export interface PollFormData {
   title: string;
   description: string;
   imageFile: File | null;
+  teamId: string;
 }
 
 interface PollFormProps {
@@ -14,25 +16,29 @@ interface PollFormProps {
     title: string;
     description: string;
     backgroundImageUrl?: string | null;
+    teamId?: string | null;
   };
   onSubmit: (data: PollFormData) => Promise<void>;
   submitLabel: string;
+  isEdit?: boolean;
 }
 
 interface FieldErrors {
   title?: string;
   description?: string;
   image?: string;
+  teamId?: string;
 }
 
 /**
  * Shared form component for creating and editing polls.
  * Handles client-side validation for title, description, and image file.
  */
-export function PollForm({ initialData, onSubmit, submitLabel }: PollFormProps) {
+export function PollForm({ initialData, onSubmit, submitLabel, isEdit = false }: PollFormProps) {
   const [title, setTitle] = useState(initialData?.title ?? '');
   const [description, setDescription] = useState(initialData?.description ?? '');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [teamId, setTeamId] = useState(initialData?.teamId ?? '');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -57,6 +63,11 @@ export function PollForm({ initialData, onSubmit, submitLabel }: PollFormProps) 
       } else if (!isAllowedImageSize(imageFile.size)) {
         fieldErrors.image = 'Image must be 5 MB or smaller.';
       }
+    }
+
+    // teamId required for new polls, optional for editing legacy polls
+    if (!isEdit && !teamId) {
+      fieldErrors.teamId = 'Team selection is required for new polls.';
     }
 
     return fieldErrors;
@@ -85,7 +96,7 @@ export function PollForm({ initialData, onSubmit, submitLabel }: PollFormProps) 
 
     setSubmitting(true);
     try {
-      await onSubmit({ title: title.trim(), description: description.trim(), imageFile });
+      await onSubmit({ title: title.trim(), description: description.trim(), imageFile, teamId });
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'An unexpected error occurred.');
     } finally {
@@ -111,6 +122,17 @@ export function PollForm({ initialData, onSubmit, submitLabel }: PollFormProps) 
           {submitError}
         </div>
       )}
+
+      {/* Team selector */}
+      <TeamSelector
+        value={teamId}
+        onChange={(id) => {
+          setTeamId(id);
+          if (errors.teamId) setErrors((prev) => ({ ...prev, teamId: undefined }));
+        }}
+        required={!isEdit}
+        error={errors.teamId}
+      />
 
       {/* Title field */}
       <div style={{ marginBottom: 'var(--space-5)' }}>

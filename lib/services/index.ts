@@ -30,6 +30,9 @@ export type {
   RevealStage,
 } from './facilitatorService';
 
+export { teamService, createTeamService } from './teamService';
+export type { TeamService } from './teamService';
+
 export { retentionService, createRetentionService } from './retentionService';
 export type { RetentionService, PurgeResult } from './retentionService';
 
