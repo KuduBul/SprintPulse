@@ -356,7 +356,8 @@ export function ParticipantForm({
       {/* Actions */}
       <div
         style={{
-          marginTop: 'var(--space-6)',
+          marginTop: 'var(--space-8)',
+          paddingTop: 'var(--space-4)',
           display: 'flex',
           gap: 'var(--space-3)',
           justifyContent: 'center',
@@ -453,7 +454,7 @@ function CanvasLayout({
           minHeight: '500px',
           paddingBottom: '56.25%', // 16:9 aspect ratio
           borderRadius: 'var(--radius-lg)',
-          overflow: 'visible',
+          overflow: 'hidden',
           border: '2px solid var(--color-border-strong)',
           backgroundColor: backgroundImageUrl ? undefined : 'var(--color-bg-canvas)',
           backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : undefined,
@@ -474,7 +475,7 @@ function CanvasLayout({
                 left: `${pos.x}%`,
                 top: `${pos.y}%`,
                 width: `${pos.width}%`,
-                minHeight: `${pos.height}%`,
+                maxHeight: `${100 - pos.y}%`,
                 zIndex: index + 1,
                 backgroundColor: 'rgba(255, 255, 255, 0.97)',
                 border: '1px solid var(--color-border-strong)',
