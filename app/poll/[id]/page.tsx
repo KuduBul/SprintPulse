@@ -193,6 +193,21 @@ export default function ParticipantPollPage() {
           <p style={{ color: 'var(--color-text-secondary)', marginTop: 'var(--space-2)' }}>
             You have already submitted your responses to this poll as {participantName}.
           </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: 'var(--space-4)',
+              padding: 'var(--space-2) var(--space-4)',
+              backgroundColor: 'transparent',
+              color: 'var(--color-primary-600)',
+              border: '1px solid var(--color-primary-300)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 'var(--font-size-sm)',
+              cursor: 'pointer',
+            }}
+          >
+            Poll was reset? Click to check again
+          </button>
         </div>
       </main>
     );
