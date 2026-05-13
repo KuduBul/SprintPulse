@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const MOCK_USER_ID = 'test-user-id';
+
+// Mock the authGuard middleware to pass through with a fake userId
+vi.mock('@/middleware/authGuard', () => ({
+  withAuth: (handler: Function) => (request: Request, context?: any) =>
+    handler(request, { userId: MOCK_USER_ID, ...context }),
+}));
+
 // Mock the services module
 vi.mock('@/lib/services', () => ({
   pollService: {
@@ -10,11 +18,9 @@ vi.mock('@/lib/services', () => ({
     updateQuestion: vi.fn(),
     deleteQuestion: vi.fn(),
   },
-}));
-
-// Mock the adminAuth middleware to pass through
-vi.mock('@/middleware/adminAuth', () => ({
-  withAdminAuth: (handler: Function) => handler,
+  teamService: {
+    getTeam: vi.fn(),
+  },
 }));
 
 import { pollService, questionService } from '@/lib/services';
@@ -84,7 +90,7 @@ describe('app/api/polls/[id]/questions/route.ts', () => {
         allowCustom: false,
         position: null,
         displayOrder: 0,
-      });
+      }, MOCK_USER_ID);
     });
 
     it('creates a question with allowCustom and position', async () => {
@@ -115,7 +121,7 @@ describe('app/api/polls/[id]/questions/route.ts', () => {
         allowCustom: true,
         position: { x: 10, y: 20, width: 30, height: 40 },
         displayOrder: 1,
-      });
+      }, MOCK_USER_ID);
     });
 
     it('returns 404 when poll not found', async () => {
@@ -287,7 +293,7 @@ describe('app/api/polls/[id]/questions/[qId]/route.ts', () => {
       expect(body.text).toBe('Updated question text');
       expect(questionService.updateQuestion).toHaveBeenCalledWith(mockQuestionId, {
         text: 'Updated question text',
-      });
+      }, MOCK_USER_ID);
     });
 
     it('updates question options', async () => {
@@ -394,7 +400,7 @@ describe('app/api/polls/[id]/questions/[qId]/route.ts', () => {
 
       expect(response.status).toBe(200);
       expect(body.message).toBe('Question deleted');
-      expect(questionService.deleteQuestion).toHaveBeenCalledWith(mockQuestionId);
+      expect(questionService.deleteQuestion).toHaveBeenCalledWith(mockQuestionId, MOCK_USER_ID);
     });
 
     it('returns 404 when poll not found', async () => {

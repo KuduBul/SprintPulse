@@ -11,31 +11,34 @@ import {
 } from '@/lib/validators/schemas';
 
 describe('CreatePollSchema', () => {
-  it('accepts a valid poll with title only', () => {
-    const result = CreatePollSchema.safeParse({ title: 'My Poll' });
+  const validTeamId = '00000000-0000-0000-0000-000000000001';
+
+  it('accepts a valid poll with title and teamId', () => {
+    const result = CreatePollSchema.safeParse({ title: 'My Poll', teamId: validTeamId });
     expect(result.success).toBe(true);
   });
 
-  it('accepts a valid poll with title and description', () => {
+  it('accepts a valid poll with title, description, and teamId', () => {
     const result = CreatePollSchema.safeParse({
       title: 'My Poll',
       description: 'A description',
+      teamId: validTeamId,
     });
     expect(result.success).toBe(true);
   });
 
   it('rejects empty title', () => {
-    const result = CreatePollSchema.safeParse({ title: '' });
+    const result = CreatePollSchema.safeParse({ title: '', teamId: validTeamId });
     expect(result.success).toBe(false);
   });
 
   it('rejects title exceeding 200 characters', () => {
-    const result = CreatePollSchema.safeParse({ title: 'a'.repeat(201) });
+    const result = CreatePollSchema.safeParse({ title: 'a'.repeat(201), teamId: validTeamId });
     expect(result.success).toBe(false);
   });
 
   it('accepts title at exactly 200 characters', () => {
-    const result = CreatePollSchema.safeParse({ title: 'a'.repeat(200) });
+    const result = CreatePollSchema.safeParse({ title: 'a'.repeat(200), teamId: validTeamId });
     expect(result.success).toBe(true);
   });
 
@@ -43,6 +46,7 @@ describe('CreatePollSchema', () => {
     const result = CreatePollSchema.safeParse({
       title: 'Valid',
       description: 'a'.repeat(1001),
+      teamId: validTeamId,
     });
     expect(result.success).toBe(false);
   });
@@ -51,8 +55,19 @@ describe('CreatePollSchema', () => {
     const result = CreatePollSchema.safeParse({
       title: 'Valid',
       description: 'a'.repeat(1000),
+      teamId: validTeamId,
     });
     expect(result.success).toBe(true);
+  });
+
+  it('rejects missing teamId for new polls', () => {
+    const result = CreatePollSchema.safeParse({ title: 'My Poll' });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects invalid teamId format', () => {
+    const result = CreatePollSchema.safeParse({ title: 'My Poll', teamId: 'not-a-uuid' });
+    expect(result.success).toBe(false);
   });
 });
 

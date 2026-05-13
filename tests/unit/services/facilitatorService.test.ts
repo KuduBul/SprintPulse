@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createFacilitatorService } from '@/lib/services/facilitatorService';
 
-// Mock the Prisma client
-const mockPrisma = {
+// Use vi.hoisted to define mocks before vi.mock hoisting
+const mockPrisma = vi.hoisted(() => ({
   $transaction: vi.fn(),
   poll: {
     findFirstOrThrow: vi.fn(),
@@ -11,7 +11,7 @@ const mockPrisma = {
   auditLog: {
     create: vi.fn(),
   },
-};
+}));
 
 vi.mock('@/lib/db/client', () => ({
   prisma: mockPrisma,

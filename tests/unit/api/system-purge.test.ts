@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const MOCK_USER_ID = 'test-user-id';
+
+// Mock the authGuard middleware to pass through with a fake userId
+vi.mock('@/middleware/authGuard', () => ({
+  withAuth: (handler: Function) => (request?: Request, context?: any) =>
+    handler(request, { userId: MOCK_USER_ID, ...context }),
+}));
+
 // Mock the retentionService module
 vi.mock('@/lib/services', () => ({
   retentionService: {

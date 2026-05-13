@@ -71,23 +71,28 @@ describe('ErrorBoundary', () => {
   });
 
   it('recovers when "Try again" button is clicked', () => {
+    let shouldThrow = true;
+
+    function ConditionalThrow() {
+      if (shouldThrow) {
+        throw new Error('Test error');
+      }
+      return <div>Normal content</div>;
+    }
+
     const { rerender } = render(
       <ErrorBoundary>
-        <ThrowingComponent shouldThrow={true} />
+        <ConditionalThrow />
       </ErrorBoundary>
     );
 
     expect(screen.getByText('Something went wrong')).toBeInTheDocument();
 
+    // Stop throwing before clicking retry
+    shouldThrow = false;
+
     // Click retry — this resets the error state
     fireEvent.click(screen.getByText('Try again'));
-
-    // Re-render with non-throwing component
-    rerender(
-      <ErrorBoundary>
-        <ThrowingComponent shouldThrow={false} />
-      </ErrorBoundary>
-    );
 
     expect(screen.getByText('Normal content')).toBeInTheDocument();
   });

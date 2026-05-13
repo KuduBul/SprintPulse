@@ -30,7 +30,7 @@ This plan implements team-based poll access for SprintPulse. It adds a `Team` en
     - Export new types: `CreateTeamInput`, `UpdateTeamInput`, `ValidatePinInput`
     - _Requirements: 1.4, 2.3, 3.1, 3.3, 4.2, 6.3, 6.4_
 
-- [ ] 3. Implement TeamService
+- [x] 3. Implement TeamService
   - [x] 3.1 Create `lib/services/teamService.ts` with full CRUD and PIN logic
     - Implement `createTeam(name, userId)`: creates team, calls `generateUniquePin()`, returns team
     - Implement `listTeams(userId)`: returns non-deleted teams for user, ordered by `createdAt` desc
@@ -42,34 +42,34 @@ This plan implements team-based poll access for SprintPulse. It adds a `Team` en
     - Export singleton `teamService` instance
     - _Requirements: 1.1, 1.2, 1.3, 1.5, 2.1, 2.2, 2.4, 2.5, 4.2_
 
-  - [ ]* 3.2 Write property tests for TeamService PIN generation
+  - [x] 3.2 Write property tests for TeamService PIN generation
     - **Property 2: PIN generation format and uniqueness**
     - **Validates: Requirements 1.2, 1.3**
     - Create `tests/property/pinGeneration.property.test.ts`
     - Use fast-check to verify generated PINs are 4–6 chars, alphanumeric, and unique across batches
 
-  - [ ]* 3.3 Write property tests for TeamService name validation
+  - [x] 3.3 Write property tests for TeamService name validation
     - **Property 3: Invalid team names are rejected**
     - **Validates: Requirements 1.4, 2.3**
     - Create `tests/property/teamService.property.test.ts`
     - Use fast-check to verify empty, whitespace-only, and >100 char names are rejected
 
-  - [ ]* 3.4 Write property tests for team list ordering
+  - [x] 3.4 Write property tests for team list ordering
     - **Property 4: Team list ordering**
     - **Validates: Requirements 2.1**
     - Verify listed teams are always ordered by createdAt descending
 
-  - [ ]* 3.5 Write property tests for team rename preserves fields
+  - [x] 3.5 Write property tests for team rename preserves fields
     - **Property 5: Rename preserves other fields**
     - **Validates: Requirements 2.2**
     - Verify renaming only changes name, preserving id, pin, userId
 
-  - [ ]* 3.6 Write property tests for team deletion and poll disassociation
+  - [x] 3.6 Write property tests for team deletion and poll disassociation
     - **Property 6: Team deletion soft-deletes and disassociates polls**
     - **Validates: Requirements 2.4**
     - Verify deleting a team sets isDeleted=true and nullifies teamId on associated polls
 
-- [ ] 4. Update PollService with team filtering
+- [x] 4. Update PollService with team filtering
   - [x] 4.1 Add team-aware methods to `lib/services/pollService.ts`
     - Add `listPublicPollsByTeam(teamId)`: returns non-deleted polls where `teamId` matches
     - Add `listPollsByTeam(userId, teamId)`: returns facilitator's polls filtered by team
@@ -78,21 +78,21 @@ This plan implements team-based poll access for SprintPulse. It adds a `Team` en
     - Update `listPublicPolls` to also return polls with `teamId=null` (backward compat)
     - _Requirements: 3.1, 3.2, 3.4, 3.6, 6.2_
 
-  - [ ]* 4.2 Write property tests for poll filtering by team
+  - [x] 4.2 Write property tests for poll filtering by team
     - **Property 9: Poll filtering by team**
     - **Validates: Requirements 3.6, 4.3**
     - Create `tests/property/pollFiltering.property.test.ts`
     - Verify querying by teamId returns exactly matching polls and no others
 
-  - [ ]* 4.3 Write property tests for unassigned polls visibility
+  - [x] 4.3 Write property tests for unassigned polls visibility
     - **Property 12: Unassigned polls visible to all**
     - **Validates: Requirements 6.2**
     - Verify polls with teamId=null appear in public listing regardless of team filter
 
-- [ ] 5. Checkpoint
+- [x] 5. Checkpoint
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Team API routes (CRUD)
+- [x] 6. Team API routes (CRUD)
   - [x] 6.1 Create `app/api/teams/route.ts` with GET and POST handlers
     - GET: authenticated, calls `teamService.listTeams(userId)`, returns team list
     - POST: authenticated, validates body with `CreateTeamSchema`, calls `teamService.createTeam`, returns 201
@@ -111,14 +111,14 @@ This plan implements team-based poll access for SprintPulse. It adds a `Team` en
     - Returns `{ teamId, teamName }` on success, 404 with "PIN not recognized" on failure
     - _Requirements: 4.2, 4.4_
 
-  - [ ]* 6.4 Write property tests for PIN validation endpoint
+  - [x] 6.4 Write property tests for PIN validation endpoint
     - **Property 10: Valid PIN returns correct team**
     - **Validates: Requirements 4.2**
     - **Property 11: Invalid PIN returns error**
     - **Validates: Requirements 4.4**
     - Create `tests/property/pinValidation.property.test.ts`
 
-- [ ] 7. Update polls API route for team assignment
+- [x] 7. Update polls API route for team assignment
   - [x] 7.1 Update `app/api/polls/route.ts` POST handler to require teamId
     - The updated `CreatePollSchema` already requires `teamId`
     - Add validation that the team exists and is owned by the authenticated user before creating the poll
@@ -136,11 +136,11 @@ This plan implements team-based poll access for SprintPulse. It adds a `Team` en
     - If no `teamId`: return all non-deleted polls (existing behavior)
     - _Requirements: 4.3, 6.2_
 
-  - [ ]* 7.4 Write property test for cross-ownership team assignment rejection
+  - [x] 7.4 Write property test for cross-ownership team assignment rejection
     - **Property 8: Cross-ownership team assignment rejected**
     - **Validates: Requirements 3.4**
 
-- [ ] 8. Checkpoint
+- [x] 8. Checkpoint
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. Teams management page for facilitators
@@ -189,10 +189,10 @@ This plan implements team-based poll access for SprintPulse. It adds a `Team` en
     - Add team filter dropdown to filter polls by team
     - _Requirements: 3.5, 3.6_
 
-- [ ] 12. Checkpoint
+- [x] 12. Checkpoint
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. Update participant page with PIN entry flow
+- [x] 13. Update participant page with PIN entry flow
   - [x] 13.1 Create `components/participant/PinEntryForm.tsx` component
     - Input field for 4–6 character PIN with submit button
     - Display error message for invalid/unrecognized PINs
@@ -209,25 +209,25 @@ This plan implements team-based poll access for SprintPulse. It adds a `Team` en
     - Show unassigned polls (teamId=null) alongside team-filtered polls
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 6.2_
 
-  - [ ]* 13.3 Write unit tests for participant page PIN flow
+  - [x] 13.3 Write unit tests for participant page PIN flow
     - Test localStorage read/write behavior
     - Test PIN validation success and error states
     - Test "Switch Team" functionality
     - _Requirements: 4.5, 4.6, 4.7, 4.8_
 
-- [ ] 14. Authorization guard for team operations
+- [x] 14. Authorization guard for team operations
   - [x] 14.1 Add ownership validation in TeamService and PollService
     - Ensure `teamService` methods reject operations on teams not owned by the requesting user
     - Ensure `pollService.createPoll` and `updatePoll` verify team ownership before assignment
     - Return appropriate error codes (403 FORBIDDEN) for unauthorized access
     - _Requirements: 2.5, 3.4_
 
-  - [ ]* 14.2 Write property test for cross-user team authorization
+  - [x] 14.2 Write property test for cross-user team authorization
     - **Property 7: Authorization prevents cross-user team management**
     - **Validates: Requirements 2.5**
     - Verify facilitator B cannot read/update/delete teams owned by facilitator A
 
-- [ ] 15. Final checkpoint
+- [x] 15. Final checkpoint
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

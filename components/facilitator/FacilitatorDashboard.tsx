@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useApi } from '@/lib/hooks/useApi';
+import { ResultsDisplay } from '@/components/results/ResultsDisplay';
 
 type RevealStage = 'HIDDEN' | 'COUNTS' | 'DETAILS';
 
@@ -533,12 +534,12 @@ export function FacilitatorDashboard({ pollId, poll, questions }: FacilitatorDas
           aria-labelledby="tab-results"
           hidden={activeTab !== 'results'}
         >
-          {results && results.questions.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-              {results.questions.map((q) => (
-                <QuestionResultCard key={q.questionId} question={q} />
-              ))}
-            </div>
+          {results ? (
+            <ResultsDisplay
+              results={results}
+              revealStage={facilitatorState.revealStage}
+              anonymise={facilitatorState.anonymise}
+            />
           ) : (
             <p style={{ color: 'var(--color-text-secondary)', padding: 'var(--space-4)' }}>
               No responses yet.
@@ -578,12 +579,12 @@ export function FacilitatorDashboard({ pollId, poll, questions }: FacilitatorDas
               {clearingTest ? 'Clearing...' : 'Clear Test Responses'}
             </button>
           </div>
-          {testResults && testResults.questions.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-              {testResults.questions.map((q) => (
-                <QuestionResultCard key={q.questionId} question={q} />
-              ))}
-            </div>
+          {testResults ? (
+            <ResultsDisplay
+              results={testResults}
+              revealStage={facilitatorState.revealStage}
+              anonymise={facilitatorState.anonymise}
+            />
           ) : (
             <p style={{ color: 'var(--color-text-secondary)', padding: 'var(--space-4)' }}>
               No test responses yet.
@@ -591,115 +592,6 @@ export function FacilitatorDashboard({ pollId, poll, questions }: FacilitatorDas
           )}
         </div>
       </section>
-    </div>
-  );
-}
-
-/**
- * Renders a single question's aggregated results.
- */
-function QuestionResultCard({ question }: { question: QuestionResult }) {
-  return (
-    <div
-      style={{
-        padding: 'var(--space-4)',
-        border: '1px solid var(--color-border-default)',
-        borderRadius: 'var(--radius-lg)',
-      }}
-    >
-      <h3
-        style={{
-          fontSize: 'var(--font-size-base)',
-          fontWeight: 'var(--font-weight-semibold)',
-          marginBottom: 'var(--space-3)',
-        }}
-      >
-        {question.questionText}
-      </h3>
-      {question.totalResponses === 0 ? (
-        <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)' }}>
-          No responses yet.
-        </p>
-      ) : (
-        <>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-            {question.options.map((opt) => (
-              <div key={opt.label} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                <div
-                  style={{
-                    flex: 1,
-                    fontSize: 'var(--font-size-sm)',
-                    color: 'var(--color-text-primary)',
-                  }}
-                >
-                  {opt.label}
-                </div>
-                <div
-                  style={{
-                    width: '120px',
-                    height: '8px',
-                    backgroundColor: 'var(--color-neutral-200)',
-                    borderRadius: 'var(--radius-full)',
-                    overflow: 'hidden',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: `${opt.percentage}%`,
-                      height: '100%',
-                      backgroundColor: 'var(--color-primary-500)',
-                      borderRadius: 'var(--radius-full)',
-                      transition: 'width var(--transition-normal)',
-                    }}
-                  />
-                </div>
-                <div
-                  style={{
-                    fontSize: 'var(--font-size-xs)',
-                    color: 'var(--color-text-secondary)',
-                    minWidth: '60px',
-                    textAlign: 'right',
-                  }}
-                >
-                  {opt.count} ({opt.percentage}%)
-                </div>
-              </div>
-            ))}
-          </div>
-          {question.customResponses.length > 0 && (
-            <div style={{ marginTop: 'var(--space-4)' }}>
-              <h4
-                style={{
-                  fontSize: 'var(--font-size-sm)',
-                  fontWeight: 'var(--font-weight-semibold)',
-                  color: 'var(--color-text-secondary)',
-                  marginBottom: 'var(--space-2)',
-                }}
-              >
-                Custom Responses
-              </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                {question.customResponses.map((cr, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      padding: 'var(--space-2) var(--space-3)',
-                      backgroundColor: 'var(--color-bg-tertiary)',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: 'var(--font-size-sm)',
-                    }}
-                  >
-                    <span style={{ fontWeight: 'var(--font-weight-medium)' }}>
-                      {cr.participantLabel}:
-                    </span>{' '}
-                    {cr.text}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 }

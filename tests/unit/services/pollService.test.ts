@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createPollService } from '@/lib/services/pollService';
 
-// Mock the Prisma client
-const mockPrisma = {
+// Use vi.hoisted to define mocks before vi.mock hoisting
+const mockPrisma = vi.hoisted(() => ({
   $transaction: vi.fn(),
   poll: {
     create: vi.fn(),
@@ -20,7 +20,7 @@ const mockPrisma = {
   auditLog: {
     create: vi.fn(),
   },
-};
+}));
 
 vi.mock('@/lib/db/client', () => ({
   prisma: mockPrisma,
@@ -36,10 +36,20 @@ import { auditLogger } from '@/lib/services/auditLogger';
 
 describe('PollService', () => {
   let pollService: ReturnType<typeof createPollService>;
+  const MOCK_USER_ID = 'test-user-id';
 
   beforeEach(() => {
     vi.clearAllMocks();
     pollService = createPollService();
+
+    // Default findFirst mock for ownership checks
+    mockPrisma.poll.findFirst.mockResolvedValue({
+      id: 'poll-1',
+      title: 'Test Poll',
+      userId: MOCK_USER_ID,
+      isDeleted: false,
+      questions: [],
+    });
 
     // Default $transaction implementation: execute the callback with a mock tx
     mockPrisma.$transaction.mockImplementation(async (fn: any) => {
@@ -88,7 +98,7 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      const result = await pollService.createPoll({ title: 'Test Poll' });
+      const result = await pollService.createPoll({ title: 'Test Poll' }, MOCK_USER_ID);
 
       expect(result).toEqual(mockPoll);
       expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
@@ -118,7 +128,7 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      const result = await pollService.createPoll({ title: 'My Poll', description: 'A description' });
+      const result = await pollService.createPoll({ title: 'My Poll', description: 'A description' }, MOCK_USER_ID);
 
       expect(result.title).toBe('My Poll');
       expect(result.description).toBe('A description');
@@ -148,13 +158,13 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      await pollService.createPoll({ title: 'Audit Test' });
+      await pollService.createPoll({ title: 'Audit Test' }, MOCK_USER_ID);
 
       expect(auditLogger.log).toHaveBeenCalledWith(
         expect.objectContaining({
           pollId: 'poll-3',
           action: 'POLL_CREATED',
-          actor: 'admin',
+          actor: MOCK_USER_ID,
           metadata: { title: 'Audit Test' },
         }),
         expect.anything(),
@@ -185,7 +195,7 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      await pollService.createPoll({ title: 'Defaults Test' });
+      await pollService.createPoll({ title: 'Defaults Test' }, MOCK_USER_ID);
 
       expect(createData.facilitatorState).toEqual({
         _v: 1,
@@ -222,7 +232,7 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      const result = await pollService.updatePoll('poll-1', { title: 'Updated Title' });
+      const result = await pollService.updatePoll('poll-1', { title: 'Updated Title' }, MOCK_USER_ID);
 
       expect(result.title).toBe('Updated Title');
     });
@@ -254,7 +264,7 @@ describe('PollService', () => {
       const result = await pollService.updatePoll('poll-1', {
         description: 'New desc',
         backgroundImageUrl: 'https://example.com/img.png',
-      });
+      }, MOCK_USER_ID);
 
       expect(result.description).toBe('New desc');
       expect(result.backgroundImageUrl).toBe('https://example.com/img.png');
@@ -284,13 +294,13 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      await pollService.updatePoll('poll-1', { title: 'Updated' });
+      await pollService.updatePoll('poll-1', { title: 'Updated' }, MOCK_USER_ID);
 
       expect(auditLogger.log).toHaveBeenCalledWith(
         expect.objectContaining({
           pollId: 'poll-1',
           action: 'POLL_UPDATED',
-          actor: 'admin',
+          actor: MOCK_USER_ID,
           metadata: { updatedFields: ['title'] },
         }),
         expect.anything(),
@@ -316,7 +326,7 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      await pollService.deletePoll('poll-1');
+      await pollService.deletePoll('poll-1', MOCK_USER_ID);
 
       expect(updateArgs.where).toEqual({ id: 'poll-1' });
       expect(updateArgs.data).toEqual({ isDeleted: true });
@@ -335,13 +345,13 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      await pollService.deletePoll('poll-1');
+      await pollService.deletePoll('poll-1', MOCK_USER_ID);
 
       expect(auditLogger.log).toHaveBeenCalledWith(
         expect.objectContaining({
           pollId: 'poll-1',
           action: 'POLL_DELETED',
-          actor: 'admin',
+          actor: MOCK_USER_ID,
         }),
         expect.anything(),
       );
@@ -391,7 +401,7 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      const result = await pollService.clonePoll('poll-original');
+      const result = await pollService.clonePoll('poll-original', MOCK_USER_ID);
 
       expect(result.title).toBe('Original Poll (Copy)');
       expect(result.id).toBe('poll-clone');
@@ -407,6 +417,7 @@ describe('PollService', () => {
         isDeleted: false,
         createdAt: new Date(),
         updatedAt: new Date(),
+        userId: MOCK_USER_ID,
         questions: [
           { id: 'q1', pollId: 'poll-original', text: 'Q1?', options: ['A', 'B'], allowCustom: false, position: null, displayOrder: 0 },
           { id: 'q2', pollId: 'poll-original', text: 'Q2?', options: ['X', 'Y', 'Z'], allowCustom: true, position: { x: 10, y: 20, width: 30, height: 40 }, displayOrder: 1 },
@@ -423,6 +434,9 @@ describe('PollService', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
+
+      // Mock findFirst to return the original poll with questions (for ownership + include)
+      mockPrisma.poll.findFirst.mockResolvedValue(originalPoll);
 
       let createManyData: any;
       mockPrisma.$transaction.mockImplementation(async (fn: any) => {
@@ -444,7 +458,7 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      await pollService.clonePoll('poll-original');
+      await pollService.clonePoll('poll-original', MOCK_USER_ID);
 
       expect(createManyData).toHaveLength(2);
       expect(createManyData[0].pollId).toBe('poll-clone');
@@ -486,7 +500,7 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      await pollService.clonePoll('poll-original');
+      await pollService.clonePoll('poll-original', MOCK_USER_ID);
 
       expect(createArgs.facilitatorState).toEqual({
         _v: 1,
@@ -526,13 +540,13 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      await pollService.clonePoll('poll-original');
+      await pollService.clonePoll('poll-original', MOCK_USER_ID);
 
       expect(auditLogger.log).toHaveBeenCalledWith(
         expect.objectContaining({
           pollId: 'poll-clone',
           action: 'POLL_CLONED',
-          actor: 'admin',
+          actor: MOCK_USER_ID,
           metadata: { sourcePollId: 'poll-original', newPollId: 'poll-clone' },
         }),
         expect.anything(),
@@ -572,7 +586,7 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      await pollService.clonePoll('poll-original');
+      await pollService.clonePoll('poll-original', MOCK_USER_ID);
 
       expect(questionCreateManyCalled).toBe(false);
     });
@@ -596,7 +610,7 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      await pollService.resetResponses('poll-1');
+      await pollService.resetResponses('poll-1', MOCK_USER_ID);
 
       expect(deleteWhereArgs).toEqual({ pollId: 'poll-1' });
     });
@@ -614,13 +628,13 @@ describe('PollService', () => {
         return fn(tx);
       });
 
-      await pollService.resetResponses('poll-1');
+      await pollService.resetResponses('poll-1', MOCK_USER_ID);
 
       expect(auditLogger.log).toHaveBeenCalledWith(
         expect.objectContaining({
           pollId: 'poll-1',
           action: 'RESPONSES_RESET',
-          actor: 'admin',
+          actor: MOCK_USER_ID,
           metadata: { deletedCount: 10 },
         }),
         expect.anything(),
@@ -643,18 +657,18 @@ describe('PollService', () => {
 
       mockPrisma.poll.findFirst.mockResolvedValue(mockPoll);
 
-      const result = await pollService.getPoll('poll-1');
+      const result = await pollService.getPoll('poll-1', MOCK_USER_ID);
 
       expect(result).toEqual(mockPoll);
       expect(mockPrisma.poll.findFirst).toHaveBeenCalledWith({
-        where: { id: 'poll-1', isDeleted: false },
+        where: { id: 'poll-1', userId: MOCK_USER_ID, isDeleted: false },
       });
     });
 
     it('returns null for a soft-deleted poll', async () => {
       mockPrisma.poll.findFirst.mockResolvedValue(null);
 
-      const result = await pollService.getPoll('poll-deleted');
+      const result = await pollService.getPoll('poll-deleted', MOCK_USER_ID);
 
       expect(result).toBeNull();
     });
@@ -662,7 +676,7 @@ describe('PollService', () => {
     it('returns null for a non-existent poll', async () => {
       mockPrisma.poll.findFirst.mockResolvedValue(null);
 
-      const result = await pollService.getPoll('non-existent');
+      const result = await pollService.getPoll('non-existent', MOCK_USER_ID);
 
       expect(result).toBeNull();
     });
@@ -677,11 +691,11 @@ describe('PollService', () => {
 
       mockPrisma.poll.findMany.mockResolvedValue(mockPolls);
 
-      const result = await pollService.listPolls();
+      const result = await pollService.listPolls(MOCK_USER_ID);
 
       expect(result).toEqual(mockPolls);
       expect(mockPrisma.poll.findMany).toHaveBeenCalledWith({
-        where: { isDeleted: false },
+        where: { userId: MOCK_USER_ID, isDeleted: false },
         orderBy: { createdAt: 'desc' },
       });
     });
@@ -689,7 +703,7 @@ describe('PollService', () => {
     it('returns empty array when no polls exist', async () => {
       mockPrisma.poll.findMany.mockResolvedValue([]);
 
-      const result = await pollService.listPolls();
+      const result = await pollService.listPolls(MOCK_USER_ID);
 
       expect(result).toEqual([]);
     });

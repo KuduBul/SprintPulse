@@ -36,6 +36,9 @@ export function sanitise(input: string | null | undefined): string {
   // Remove any remaining angle-bracket patterns that look like tags (catches malformed HTML)
   result = result.replace(/<[^>]*>/g, '');
 
+  // Remove incomplete tags at end of string (no closing angle bracket)
+  result = result.replace(/<[a-z][^>]*$/gi, '');
+
   // Decode common HTML entities that might be used to bypass sanitisation
   result = result.replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
   result = result.replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)));
