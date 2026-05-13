@@ -81,8 +81,6 @@ describe('CanvasFallback', () => {
     );
 
     // q1 has position { x: 10, y: 20, width: 25, height: 15 }
-    const xInput = screen.getByLabelText('X coordinate for question', { exact: false });
-    // There are multiple, get the first one (q1)
     const inputs = screen.getAllByRole('spinbutton');
     // q1: x=10, y=20, width=25, height=15
     // q2: x=0, y=0, width=20, height=15 (defaults)

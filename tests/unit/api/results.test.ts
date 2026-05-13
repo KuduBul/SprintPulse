@@ -1,9 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const MOCK_USER_ID = 'test-user-id';
+
+// Mock the authGuard middleware to pass through with a fake userId
+vi.mock('@/middleware/authGuard', () => ({
+  withAuth: (handler: Function) => (request: Request, context?: any) =>
+    handler(request, { userId: MOCK_USER_ID, ...context }),
+}));
+
 // Mock the services module
 vi.mock('@/lib/services', () => ({
   pollService: {
     getPoll: vi.fn(),
+    getPublicPoll: vi.fn(),
   },
   responseService: {
     getResults: vi.fn(),
@@ -11,11 +20,9 @@ vi.mock('@/lib/services', () => ({
   facilitatorService: {
     getState: vi.fn(),
   },
-}));
-
-// Mock the adminAuth middleware to pass through
-vi.mock('@/middleware/adminAuth', () => ({
-  withAdminAuth: (handler: Function) => handler,
+  teamService: {
+    getTeam: vi.fn(),
+  },
 }));
 
 import { pollService, responseService, facilitatorService } from '@/lib/services';
@@ -152,7 +159,7 @@ describe('app/api/polls/[id]/results/public/route.ts (Public)', () => {
   describe('GET /api/polls/[id]/results/public', () => {
     it('returns results respecting facilitator state (DETAILS, no anonymise)', async () => {
       const { GET } = await import('@/app/api/polls/[id]/results/public/route');
-      vi.mocked(pollService.getPoll).mockResolvedValue(mockPoll as any);
+      vi.mocked(pollService.getPublicPoll).mockResolvedValue(mockPoll as any);
       vi.mocked(facilitatorService.getState).mockResolvedValue({
         votingOpen: true,
         liveResults: true,
@@ -175,7 +182,7 @@ describe('app/api/polls/[id]/results/public/route.ts (Public)', () => {
 
     it('returns results respecting HIDDEN reveal stage', async () => {
       const { GET } = await import('@/app/api/polls/[id]/results/public/route');
-      vi.mocked(pollService.getPoll).mockResolvedValue(mockPoll as any);
+      vi.mocked(pollService.getPublicPoll).mockResolvedValue(mockPoll as any);
       vi.mocked(facilitatorService.getState).mockResolvedValue({
         votingOpen: false,
         liveResults: false,
@@ -198,7 +205,7 @@ describe('app/api/polls/[id]/results/public/route.ts (Public)', () => {
 
     it('returns results respecting COUNTS reveal stage with anonymisation', async () => {
       const { GET } = await import('@/app/api/polls/[id]/results/public/route');
-      vi.mocked(pollService.getPoll).mockResolvedValue(mockPoll as any);
+      vi.mocked(pollService.getPublicPoll).mockResolvedValue(mockPoll as any);
       vi.mocked(facilitatorService.getState).mockResolvedValue({
         votingOpen: true,
         liveResults: true,
@@ -237,7 +244,7 @@ describe('app/api/polls/[id]/results/public/route.ts (Public)', () => {
 
     it('excludes test responses from public results', async () => {
       const { GET } = await import('@/app/api/polls/[id]/results/public/route');
-      vi.mocked(pollService.getPoll).mockResolvedValue(mockPoll as any);
+      vi.mocked(pollService.getPublicPoll).mockResolvedValue(mockPoll as any);
       vi.mocked(facilitatorService.getState).mockResolvedValue({
         votingOpen: true,
         liveResults: true,
@@ -256,7 +263,7 @@ describe('app/api/polls/[id]/results/public/route.ts (Public)', () => {
 
     it('returns 404 when poll not found', async () => {
       const { GET } = await import('@/app/api/polls/[id]/results/public/route');
-      vi.mocked(pollService.getPoll).mockResolvedValue(null);
+      vi.mocked(pollService.getPublicPoll).mockResolvedValue(null);
 
       const response = await GET(createRequest('http://localhost/api/polls/123/results/public'), context);
       const body = await response.json();
@@ -268,7 +275,7 @@ describe('app/api/polls/[id]/results/public/route.ts (Public)', () => {
 
     it('returns 500 on internal error from pollService', async () => {
       const { GET } = await import('@/app/api/polls/[id]/results/public/route');
-      vi.mocked(pollService.getPoll).mockRejectedValue(new Error('DB error'));
+      vi.mocked(pollService.getPublicPoll).mockRejectedValue(new Error('DB error'));
 
       const response = await GET(createRequest('http://localhost/api/polls/123/results/public'), context);
       const body = await response.json();
@@ -279,7 +286,7 @@ describe('app/api/polls/[id]/results/public/route.ts (Public)', () => {
 
     it('returns 500 on internal error from facilitatorService', async () => {
       const { GET } = await import('@/app/api/polls/[id]/results/public/route');
-      vi.mocked(pollService.getPoll).mockResolvedValue(mockPoll as any);
+      vi.mocked(pollService.getPublicPoll).mockResolvedValue(mockPoll as any);
       vi.mocked(facilitatorService.getState).mockRejectedValue(new Error('DB error'));
 
       const response = await GET(createRequest('http://localhost/api/polls/123/results/public'), context);

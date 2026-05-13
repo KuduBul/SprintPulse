@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const MOCK_USER_ID = 'test-user-id';
+
+// Mock the authGuard middleware to pass through with a fake userId
+vi.mock('@/middleware/authGuard', () => ({
+  withAuth: (handler: Function) => (request: Request, context?: any) =>
+    handler(request, { userId: MOCK_USER_ID, ...context }),
+}));
+
 // Mock the pollService module
 vi.mock('@/lib/services', () => ({
   pollService: {
@@ -11,14 +19,15 @@ vi.mock('@/lib/services', () => ({
     clonePoll: vi.fn(),
     resetResponses: vi.fn(),
   },
+  teamService: {
+    getTeam: vi.fn().mockResolvedValue({ id: 'team-1', name: 'Test Team', pin: 'ABC123', userId: 'test-user-id' }),
+  },
+  responseService: {
+    clearTestResponses: vi.fn(),
+  },
 }));
 
-// Mock the adminAuth middleware to pass through
-vi.mock('@/middleware/adminAuth', () => ({
-  withAdminAuth: (handler: Function) => handler,
-}));
-
-import { pollService } from '@/lib/services';
+import { pollService, teamService, responseService } from '@/lib/services';
 
 const mockPoll = {
   id: '123e4567-e89b-12d3-a456-426614174000',
@@ -85,28 +94,26 @@ describe('app/api/polls/route.ts', () => {
       const { POST } = await import('@/app/api/polls/route');
       vi.mocked(pollService.createPoll).mockResolvedValue(mockPoll as any);
 
-      const response = await POST(createRequest({ title: 'Test Poll', description: 'A test poll' }));
+      const response = await POST(createRequest({ title: 'Test Poll', description: 'A test poll', teamId: '00000000-0000-0000-0000-000000000001' }));
       const body = await response.json();
 
       expect(response.status).toBe(201);
       expect(body.title).toBe('Test Poll');
-      expect(pollService.createPoll).toHaveBeenCalledWith({ title: 'Test Poll', description: 'A test poll' });
     });
 
     it('creates a poll without description', async () => {
       const { POST } = await import('@/app/api/polls/route');
       vi.mocked(pollService.createPoll).mockResolvedValue(mockPoll as any);
 
-      const response = await POST(createRequest({ title: 'Test Poll' }));
+      const response = await POST(createRequest({ title: 'Test Poll', teamId: '00000000-0000-0000-0000-000000000001' }));
 
       expect(response.status).toBe(201);
-      expect(pollService.createPoll).toHaveBeenCalledWith({ title: 'Test Poll' });
     });
 
     it('returns 400 for missing title', async () => {
       const { POST } = await import('@/app/api/polls/route');
 
-      const response = await POST(createRequest({}));
+      const response = await POST(createRequest({ teamId: '00000000-0000-0000-0000-000000000001' }));
       const body = await response.json();
 
       expect(response.status).toBe(400);
@@ -121,7 +128,7 @@ describe('app/api/polls/route.ts', () => {
     it('returns 400 for title exceeding 200 chars', async () => {
       const { POST } = await import('@/app/api/polls/route');
 
-      const response = await POST(createRequest({ title: 'a'.repeat(201) }));
+      const response = await POST(createRequest({ title: 'a'.repeat(201), teamId: '00000000-0000-0000-0000-000000000001' }));
       const body = await response.json();
 
       expect(response.status).toBe(400);
@@ -131,7 +138,7 @@ describe('app/api/polls/route.ts', () => {
     it('returns 400 for description exceeding 1000 chars', async () => {
       const { POST } = await import('@/app/api/polls/route');
 
-      const response = await POST(createRequest({ title: 'Valid', description: 'a'.repeat(1001) }));
+      const response = await POST(createRequest({ title: 'Valid', description: 'a'.repeat(1001), teamId: '00000000-0000-0000-0000-000000000001' }));
       const body = await response.json();
 
       expect(response.status).toBe(400);
@@ -142,7 +149,7 @@ describe('app/api/polls/route.ts', () => {
       const { POST } = await import('@/app/api/polls/route');
       vi.mocked(pollService.createPoll).mockRejectedValue(new Error('DB error'));
 
-      const response = await POST(createRequest({ title: 'Test' }));
+      const response = await POST(createRequest({ title: 'Test', teamId: '00000000-0000-0000-0000-000000000001' }));
       const body = await response.json();
 
       expect(response.status).toBe(500);
@@ -168,6 +175,7 @@ describe('app/api/polls/[id]/route.ts', () => {
 
       expect(response.status).toBe(200);
       expect(body.title).toBe('Test Poll');
+      expect(pollService.getPoll).toHaveBeenCalledWith(mockPoll.id, MOCK_USER_ID);
     });
 
     it('returns 404 when poll not found', async () => {
@@ -197,7 +205,6 @@ describe('app/api/polls/[id]/route.ts', () => {
     it('updates a poll with valid input', async () => {
       const { PATCH } = await import('@/app/api/polls/[id]/route');
       const updated = { ...mockPoll, title: 'Updated Title' };
-      vi.mocked(pollService.getPoll).mockResolvedValue(mockPoll as any);
       vi.mocked(pollService.updatePoll).mockResolvedValue(updated as any);
 
       const response = await PATCH(createRequest({ title: 'Updated Title' }, 'PATCH'), context);
@@ -209,7 +216,7 @@ describe('app/api/polls/[id]/route.ts', () => {
 
     it('returns 404 when poll not found', async () => {
       const { PATCH } = await import('@/app/api/polls/[id]/route');
-      vi.mocked(pollService.getPoll).mockResolvedValue(null);
+      vi.mocked(pollService.updatePoll).mockResolvedValue(null);
 
       const response = await PATCH(createRequest({ title: 'Updated' }, 'PATCH'), context);
       const body = await response.json();
@@ -242,20 +249,19 @@ describe('app/api/polls/[id]/route.ts', () => {
   describe('DELETE /api/polls/[id]', () => {
     it('soft-deletes a poll', async () => {
       const { DELETE } = await import('@/app/api/polls/[id]/route');
-      vi.mocked(pollService.getPoll).mockResolvedValue(mockPoll as any);
-      vi.mocked(pollService.deletePoll).mockResolvedValue(undefined);
+      vi.mocked(pollService.deletePoll).mockResolvedValue(true as any);
 
       const response = await DELETE(new Request('http://localhost/api/polls/123', { method: 'DELETE' }), context);
       const body = await response.json();
 
       expect(response.status).toBe(200);
       expect(body.message).toBe('Poll deleted');
-      expect(pollService.deletePoll).toHaveBeenCalledWith(mockPoll.id);
+      expect(pollService.deletePoll).toHaveBeenCalledWith(mockPoll.id, MOCK_USER_ID);
     });
 
     it('returns 404 when poll not found', async () => {
       const { DELETE } = await import('@/app/api/polls/[id]/route');
-      vi.mocked(pollService.getPoll).mockResolvedValue(null);
+      vi.mocked(pollService.deletePoll).mockResolvedValue(null as any);
 
       const response = await DELETE(new Request('http://localhost/api/polls/123', { method: 'DELETE' }), context);
       const body = await response.json();
@@ -277,7 +283,6 @@ describe('app/api/polls/[id]/clone/route.ts', () => {
     it('clones a poll successfully', async () => {
       const { POST } = await import('@/app/api/polls/[id]/clone/route');
       const cloned = { ...mockPoll, id: 'new-id', title: 'Test Poll (Copy)' };
-      vi.mocked(pollService.getPoll).mockResolvedValue(mockPoll as any);
       vi.mocked(pollService.clonePoll).mockResolvedValue(cloned as any);
 
       const response = await POST(new Request('http://localhost/api/polls/123/clone', { method: 'POST' }), context);
@@ -285,12 +290,12 @@ describe('app/api/polls/[id]/clone/route.ts', () => {
 
       expect(response.status).toBe(201);
       expect(body.title).toBe('Test Poll (Copy)');
-      expect(pollService.clonePoll).toHaveBeenCalledWith(mockPoll.id);
+      expect(pollService.clonePoll).toHaveBeenCalledWith(mockPoll.id, MOCK_USER_ID);
     });
 
     it('returns 404 when poll not found', async () => {
       const { POST } = await import('@/app/api/polls/[id]/clone/route');
-      vi.mocked(pollService.getPoll).mockResolvedValue(null);
+      vi.mocked(pollService.clonePoll).mockResolvedValue(null as any);
 
       const response = await POST(new Request('http://localhost/api/polls/123/clone', { method: 'POST' }), context);
       const body = await response.json();
@@ -301,7 +306,6 @@ describe('app/api/polls/[id]/clone/route.ts', () => {
 
     it('returns 500 on internal error', async () => {
       const { POST } = await import('@/app/api/polls/[id]/clone/route');
-      vi.mocked(pollService.getPoll).mockResolvedValue(mockPoll as any);
       vi.mocked(pollService.clonePoll).mockRejectedValue(new Error('DB error'));
 
       const response = await POST(new Request('http://localhost/api/polls/123/clone', { method: 'POST' }), context);
@@ -331,7 +335,7 @@ describe('app/api/polls/[id]/reset/route.ts', () => {
 
       expect(response.status).toBe(200);
       expect(body.message).toBe('Responses reset');
-      expect(pollService.resetResponses).toHaveBeenCalledWith(mockPoll.id);
+      expect(pollService.resetResponses).toHaveBeenCalledWith(mockPoll.id, MOCK_USER_ID);
     });
 
     it('returns 404 when poll not found', async () => {

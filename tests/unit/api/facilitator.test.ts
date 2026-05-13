@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const MOCK_USER_ID = 'test-user-id';
+
+// Mock the authGuard middleware to pass through with a fake userId
+vi.mock('@/middleware/authGuard', () => ({
+  withAuth: (handler: Function) => (request: Request, context?: any) =>
+    handler(request, { userId: MOCK_USER_ID, ...context }),
+}));
+
 // Mock the services module
 vi.mock('@/lib/services', () => ({
   pollService: {
@@ -9,11 +17,9 @@ vi.mock('@/lib/services', () => ({
     getState: vi.fn(),
     updateState: vi.fn(),
   },
-}));
-
-// Mock the adminAuth middleware to pass through
-vi.mock('@/middleware/adminAuth', () => ({
-  withAdminAuth: (handler: Function) => handler,
+  teamService: {
+    getTeam: vi.fn(),
+  },
 }));
 
 import { pollService, facilitatorService } from '@/lib/services';
@@ -101,7 +107,7 @@ describe('app/api/polls/[id]/facilitator/route.ts', () => {
 
       expect(response.status).toBe(200);
       expect(body.votingOpen).toBe(true);
-      expect(facilitatorService.updateState).toHaveBeenCalledWith(mockPoll.id, { votingOpen: true });
+      expect(facilitatorService.updateState).toHaveBeenCalledWith(mockPoll.id, { votingOpen: true }, MOCK_USER_ID);
     });
 
     it('updates multiple fields at once', async () => {
@@ -118,7 +124,7 @@ describe('app/api/polls/[id]/facilitator/route.ts', () => {
       expect(body.votingOpen).toBe(true);
       expect(body.liveResults).toBe(true);
       expect(body.revealStage).toBe('COUNTS');
-      expect(facilitatorService.updateState).toHaveBeenCalledWith(mockPoll.id, patch);
+      expect(facilitatorService.updateState).toHaveBeenCalledWith(mockPoll.id, patch, MOCK_USER_ID);
     });
 
     it('returns 404 when poll not found', async () => {
@@ -175,7 +181,7 @@ describe('app/api/polls/[id]/facilitator/route.ts', () => {
 
       expect(response.status).toBe(200);
       expect(body).toEqual(mockFacilitatorState);
-      expect(facilitatorService.updateState).toHaveBeenCalledWith(mockPoll.id, {});
+      expect(facilitatorService.updateState).toHaveBeenCalledWith(mockPoll.id, {}, MOCK_USER_ID);
     });
   });
 });

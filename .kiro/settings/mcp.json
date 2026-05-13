@@ -32,7 +32,8 @@
         "browser_network_requests",
         "browser_network_request",
         "browser_network_request",
-        "browser_tabs"
+        "browser_tabs",
+        "browser_run_code_unsafe"
       ]
     }
   }
