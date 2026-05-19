@@ -124,6 +124,23 @@ export function votingClosedError(): NextResponse<ApiError> {
 }
 
 /**
+ * 410 — Token expired (poll link is no longer valid).
+ */
+export function tokenExpiredError(
+  message = 'This poll link has expired'
+): NextResponse<ApiError> {
+  return NextResponse.json(
+    {
+      error: {
+        code: 'TOKEN_EXPIRED',
+        message,
+      },
+    },
+    { status: 410 }
+  );
+}
+
+/**
  * 429 — Rate limited.
  */
 export function rateLimitedError(): NextResponse<ApiError> {

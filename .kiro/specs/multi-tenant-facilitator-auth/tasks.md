@@ -42,7 +42,7 @@ Replace SprintPulse's shared `ADMIN_SECRET` token authentication with individual
     - Define `AuthenticatedHandler` type with `{ userId: string; params?: any }` context
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-  - [ ]* 2.3 Write unit tests for `withAuth` guard
+  - [x] 2.3 Write unit tests for `withAuth` guard
     - Mock `createClient` and `supabase.auth.getUser()`
     - Test: returns 401 when no session
     - Test: returns 401 when getUser returns error
@@ -50,14 +50,14 @@ Replace SprintPulse's shared `ADMIN_SECRET` token authentication with individual
     - File: `tests/unit/middleware/authGuard.test.ts`
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-  - [ ]* 2.4 Write property test: unauthenticated requests are rejected (Property 1)
+  - [x] 2.4 Write property test: unauthenticated requests are rejected (Property 1)
     - **Property 1: Unauthenticated requests are rejected**
     - Generate random request objects without valid sessions
     - Assert `withAuth` always returns 401 and never calls the inner handler
     - File: `tests/properties/authGuard.property.test.ts`
     - **Validates: Requirements 3.3, 4.2, 4.3**
 
-  - [ ]* 2.5 Write property test: authenticated requests receive correct user identity (Property 2)
+  - [x] 2.5 Write property test: authenticated requests receive correct user identity (Property 2)
     - **Property 2: Authenticated requests receive correct user identity**
     - Generate random UUIDs, mock `getUser` to return them
     - Assert handler always receives the exact UUID as `userId`
@@ -87,12 +87,12 @@ Replace SprintPulse's shared `ADMIN_SECRET` token authentication with individual
     - Run `npx prisma migrate dev --name make_poll_user_id_required`
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
-- [ ] 4. Checkpoint - Ensure migrations and infrastructure are solid
+- [x] 4. Checkpoint - Ensure migrations and infrastructure are solid
   - Ensure all tests pass, ask the user if questions arise.
   - Verify database schema is correct with `npx prisma db pull` or Supabase dashboard
   - Confirm `facilitator_profiles` trigger works by testing a signup
 
-- [ ] 5. Implement PollService ownership enforcement
+- [x] 5. Implement PollService ownership enforcement
   - [x] 5.1 Update `PollService` interface and implementation with `userId` parameter
     - Add `userId: string` parameter to `createPoll`, `updatePoll`, `deletePoll`, `clonePoll`, `resetResponses`, `getPoll`, `listPolls`
     - `createPoll`: set `userId` on the created poll record
@@ -102,28 +102,28 @@ Replace SprintPulse's shared `ADMIN_SECRET` token authentication with individual
     - Keep `getPublicPoll` unchanged (no auth needed)
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 10.1, 10.2_
 
-  - [ ]* 5.2 Write property test: poll creation records ownership (Property 3)
+  - [x] 5.2 Write property test: poll creation records ownership (Property 3)
     - **Property 3: Poll creation records ownership**
     - Generate random poll inputs and UUIDs
     - Assert created poll always has `userId` equal to the provided user ID
     - File: `tests/properties/pollService.property.test.ts`
     - **Validates: Requirements 5.1**
 
-  - [ ]* 5.3 Write property test: poll listing isolation (Property 4)
+  - [x] 5.3 Write property test: poll listing isolation (Property 4)
     - **Property 4: Poll listing isolation**
     - Generate random poll sets with mixed owner UUIDs
     - Assert `listPolls(userId)` returns only polls matching that userId
     - File: `tests/properties/pollService.property.test.ts`
     - **Validates: Requirements 5.2**
 
-  - [ ]* 5.4 Write property test: non-owner access denied (Property 5)
+  - [x] 5.4 Write property test: non-owner access denied (Property 5)
     - **Property 5: Non-owner access denied**
     - Generate pairs of different UUIDs, poll owned by first
     - Assert second user is always denied access via getPoll, updatePoll, deletePoll, clonePoll, resetResponses
     - File: `tests/properties/pollService.property.test.ts`
     - **Validates: Requirements 5.3, 5.4**
 
-  - [ ]* 5.5 Write unit tests for PollService ownership logic
+  - [x] 5.5 Write unit tests for PollService ownership logic
     - Mock Prisma client
     - Test: `createPoll` sets userId on record
     - Test: `listPolls` filters by userId
@@ -132,7 +132,7 @@ Replace SprintPulse's shared `ADMIN_SECRET` token authentication with individual
     - File: `tests/unit/services/pollService.test.ts` (extend existing)
     - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 6. Implement ProfileService
+- [x] 6. Implement ProfileService
   - [x] 6.1 Create `lib/services/profileService.ts`
     - Implement `getProfile(userId)`: query `facilitator_profiles` by id, join email from Supabase auth if needed
     - Implement `createProfile(userId, displayName)`: insert into `facilitator_profiles`
@@ -140,21 +140,21 @@ Replace SprintPulse's shared `ADMIN_SECRET` token authentication with individual
     - Export singleton `profileService`
     - _Requirements: 7.1, 7.2, 7.3_
 
-  - [ ]* 6.2 Write property test: profile display name round-trip (Property 6)
+  - [x] 6.2 Write property test: profile display name round-trip (Property 6)
     - **Property 6: Profile display name round-trip**
     - Generate valid display names (1–100 characters, non-empty after trim)
     - Assert `updateProfile` then `getProfile` returns the same display name
     - File: `tests/properties/profileService.property.test.ts`
     - **Validates: Requirements 7.1**
 
-  - [ ]* 6.3 Write unit tests for ProfileService
+  - [x] 6.3 Write unit tests for ProfileService
     - Test: `updateProfile` rejects names > 100 characters
     - Test: `updateProfile` rejects empty/whitespace-only names
     - Test: `getProfile` returns null for non-existent user
     - File: `tests/unit/services/profileService.test.ts`
     - _Requirements: 7.1, 7.3_
 
-- [ ] 7. Implement client-side auth hook and update admin layout
+- [x] 7. Implement client-side auth hook and update admin layout
   - [x] 7.1 Create `useAuth` hook (`lib/hooks/useAuth.ts`)
     - Replace `useAdminToken` functionality
     - Implement: `user`, `session`, `isAuthenticated`, `isLoaded` state
@@ -177,7 +177,7 @@ Replace SprintPulse's shared `ADMIN_SECRET` token authentication with individual
     - On logout: call `signOut()`, redirect to login
     - _Requirements: 2.3, 3.1, 3.2, 9.3, 9.4_
 
-  - [ ]* 7.4 Write unit tests for `useAuth` hook
+  - [x] 7.4 Write unit tests for `useAuth` hook
     - Mock Supabase client
     - Test: initial state is unauthenticated
     - Test: `signIn` calls `supabase.auth.signInWithPassword`
@@ -186,12 +186,12 @@ Replace SprintPulse's shared `ADMIN_SECRET` token authentication with individual
     - File: `tests/unit/hooks/useAuth.test.ts`
     - _Requirements: 2.1, 2.3, 3.1_
 
-- [ ] 8. Checkpoint - Ensure auth flow works end-to-end
+- [x] 8. Checkpoint - Ensure auth flow works end-to-end
   - Ensure all tests pass, ask the user if questions arise.
   - Verify: register → login → see dashboard → logout flow works
   - Verify: session persists on page reload
 
-- [ ] 9. Update API route handlers to use `withAuth`
+- [x] 9. Update API route handlers to use `withAuth`
   - [x] 9.1 Update poll CRUD routes to use `withAuth` and pass `userId`
     - `app/api/polls/route.ts` (POST for create, GET for list): wrap with `withAuth`, pass `userId` to service
     - `app/api/polls/[id]/route.ts` (GET, PUT, DELETE): wrap with `withAuth`, pass `userId`
@@ -214,14 +214,14 @@ Replace SprintPulse's shared `ADMIN_SECRET` token authentication with individual
     - `app/api/polls/[id]/session-check/route.ts`: NO auth wrapper (keep as-is)
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-  - [ ]* 9.4 Write unit tests for updated route handlers
+  - [x] 9.4 Write unit tests for updated route handlers
     - Test: protected routes return 401 without auth
     - Test: protected routes return 403 for wrong owner
     - Test: public routes work without auth
     - File: `tests/unit/api/` (extend existing test files)
     - _Requirements: 4.2, 5.3, 6.1, 6.2, 6.3_
 
-- [ ] 10. Implement profile management UI
+- [x] 10. Implement profile management UI
   - [x] 10.1 Create profile API route (`app/api/profile/route.ts`)
     - GET: return current user's profile (display name, email)
     - PUT: update display name with validation (1–100 chars)
@@ -235,21 +235,21 @@ Replace SprintPulse's shared `ADMIN_SECRET` token authentication with individual
     - Add navigation link in admin layout
     - _Requirements: 7.1, 7.2, 7.3_
 
-- [ ] 11. Update audit logging to use authenticated user ID
+- [x] 11. Update audit logging to use authenticated user ID
   - [x] 11.1 Update all audit logger calls to pass facilitator userId as actor
     - In `PollService`: already handled in task 5.1 (actor = userId)
     - In `questionService`, `facilitatorService`: update actor from `'admin'` to the authenticated userId
     - Participant actions (`responseService`): keep actor as `'participant'`
     - _Requirements: 10.1, 10.2, 10.3_
 
-  - [ ]* 11.2 Write property test: audit log records authenticated actor identity (Property 7)
+  - [x] 11.2 Write property test: audit log records authenticated actor identity (Property 7)
     - **Property 7: Audit log records authenticated actor identity**
     - Generate random UUIDs and audit actions
     - Assert the resulting AuditLog record always has `actor` equal to the userId
     - File: `tests/properties/auditLogger.property.test.ts`
     - **Validates: Requirements 10.1, 10.2**
 
-- [ ] 12. Remove legacy admin token authentication
+- [x] 12. Remove legacy admin token authentication
   - [x] 12.1 Remove `withAdminAuth` and `useAdminToken`
     - Delete `middleware/adminAuth.ts`
     - Delete or repurpose `lib/hooks/useAdminToken.ts`
@@ -264,12 +264,32 @@ Replace SprintPulse's shared `ADMIN_SECRET` token authentication with individual
     - Session cookies are sent automatically — no explicit token header needed
     - _Requirements: 9.1, 9.4_
 
-- [ ] 13. Final checkpoint - Full regression verification
+- [x] 13. Final checkpoint - Full regression verification
   - Ensure all tests pass, ask the user if questions arise.
   - Verify: new facilitator can register, login, create poll, manage poll, logout
   - Verify: participant can still vote without auth
   - Verify: one facilitator cannot see/modify another's polls
   - Verify: existing polls are assigned to default facilitator after migration
+
+## Task Dependency Graph
+
+```json
+{
+  "waves": [
+    { "id": 0, "tasks": ["1.1", "3.1"] },
+    { "id": 1, "tasks": ["1.2", "1.3", "1.4", "3.2"] },
+    { "id": 2, "tasks": ["2.1", "2.2", "3.3"] },
+    { "id": 3, "tasks": ["2.3", "2.4", "2.5"] },
+    { "id": 4, "tasks": ["5.1", "6.1", "7.1"] },
+    { "id": 5, "tasks": ["5.2", "5.3", "5.4", "5.5", "6.2", "6.3", "7.2"] },
+    { "id": 6, "tasks": ["7.3", "7.4"] },
+    { "id": 7, "tasks": ["9.1", "9.2", "9.3", "10.1"] },
+    { "id": 8, "tasks": ["9.4", "10.2", "11.1"] },
+    { "id": 9, "tasks": ["11.2", "12.1"] },
+    { "id": 10, "tasks": ["12.2"] }
+  ]
+}
+```
 
 ## Notes
 

@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useApi } from '@/lib/hooks/useApi';
 import { ResultsDisplay } from '@/components/results/ResultsDisplay';
+import { PollUrlDisplay } from '@/components/admin/PollUrlDisplay';
+import { QRCodeDisplay } from '@/components/admin/QRCodeDisplay';
+import { TokenRegenerateButton } from '@/components/admin/TokenRegenerateButton';
 
 type RevealStage = 'HIDDEN' | 'COUNTS' | 'DETAILS';
 
@@ -27,6 +30,7 @@ interface Poll {
   title: string;
   description: string | null;
   backgroundImageUrl: string | null;
+  accessToken?: string;
 }
 
 interface OptionResult {
@@ -75,6 +79,7 @@ export function FacilitatorDashboard({ pollId, poll, questions }: FacilitatorDas
   const [stateAnnouncement, setStateAnnouncement] = useState('');
   const [clearingTest, setClearingTest] = useState(false);
   const [updatingState, setUpdatingState] = useState(false);
+  const [accessToken, setAccessToken] = useState<string | null>(poll.accessToken ?? null);
 
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const lastStateUpdateRef = useRef<number>(Date.now());
@@ -172,6 +177,17 @@ export function FacilitatorDashboard({ pollId, poll, questions }: FacilitatorDas
     window.open(`/poll/${pollId}?testMode=true`, '_blank');
   };
 
+  // Handle token regeneration
+  const handleTokenRegenerate = useCallback((newToken: string) => {
+    setAccessToken(newToken);
+    setStateAnnouncement('Poll link regenerated. Previous link is now invalid.');
+  }, []);
+
+  // Build poll URL from access token
+  const pollUrl = accessToken
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/poll/${accessToken}`
+    : null;
+
   const hasQuestions = questions.length > 0;
 
   return (
@@ -216,6 +232,48 @@ export function FacilitatorDashboard({ pollId, poll, questions }: FacilitatorDas
           Preview as Participant
         </button>
       </div>
+
+      {/* Share Section — Poll URL, QR Code, Regenerate */}
+      {pollUrl && (
+        <section
+          aria-label="Share poll"
+          style={{
+            padding: 'var(--space-6)',
+            border: '1px solid var(--color-border-default)',
+            borderRadius: 'var(--radius-lg)',
+            marginBottom: 'var(--space-6)',
+            backgroundColor: 'var(--color-bg-secondary)',
+          }}
+        >
+          <h2
+            style={{
+              fontSize: 'var(--font-size-lg)',
+              fontWeight: 'var(--font-weight-semibold)',
+              marginBottom: 'var(--space-4)',
+            }}
+          >
+            Share Poll
+          </h2>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr auto',
+              gap: 'var(--space-6)',
+              alignItems: 'start',
+            }}
+          >
+            {/* Left: URL + Regenerate */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              <PollUrlDisplay url={pollUrl} />
+              <TokenRegenerateButton pollId={pollId} onRegenerate={handleTokenRegenerate} />
+            </div>
+
+            {/* Right: QR Code */}
+            <QRCodeDisplay url={pollUrl} />
+          </div>
+        </section>
+      )}
 
       {/* No questions warning */}
       {!hasQuestions && (

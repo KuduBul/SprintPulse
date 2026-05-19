@@ -38,3 +38,9 @@ export type { RetentionService, PurgeResult } from './retentionService';
 
 export { profileService, createProfileService } from './profileService';
 export type { ProfileService, FacilitatorProfile } from './profileService';
+
+export { tokenService, createTokenService } from './tokenService';
+export type { TokenService, ValidatedPoll } from './tokenService';
+
+export { qrService, createQRService } from './qrService';
+export type { QRService } from './qrService';

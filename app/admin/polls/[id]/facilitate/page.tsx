@@ -11,6 +11,7 @@ interface PollData {
   title: string;
   description: string | null;
   backgroundImageUrl: string | null;
+  accessToken?: string;
 }
 
 interface QuestionData {

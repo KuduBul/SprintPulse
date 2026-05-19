@@ -60,9 +60,9 @@ describe('CreatePollSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('rejects missing teamId for new polls', () => {
+  it('accepts missing teamId (optional for new polls)', () => {
     const result = CreatePollSchema.safeParse({ title: 'My Poll' });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   it('rejects invalid teamId format', () => {

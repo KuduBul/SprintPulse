@@ -190,12 +190,41 @@ export function createResponseService(): ResponseService {
           optionCounts.set(resp.selectedOption, current + 1);
         }
 
-        // Compute percentages
-        const optionResults: OptionResult[] = questionOptions.map((label) => {
-          const count = optionCounts.get(label) ?? 0;
-          const percentage = totalResponses > 0 ? Math.round((count / totalResponses) * 100) : 0;
-          return { label, count, percentage };
-        });
+        // Compute percentages using largest-remainder method to ensure sum is 99–101%
+        const optionResults: OptionResult[] = (() => {
+          if (totalResponses === 0) {
+            return questionOptions.map((label) => ({
+              label,
+              count: optionCounts.get(label) ?? 0,
+              percentage: 0,
+            }));
+          }
+
+          // Calculate raw percentages and floor values
+          const rawData = questionOptions.map((label) => {
+            const count = optionCounts.get(label) ?? 0;
+            const rawPercentage = (count / totalResponses) * 100;
+            const floored = Math.floor(rawPercentage);
+            const remainder = rawPercentage - floored;
+            return { label, count, floored, remainder };
+          });
+
+          // Distribute the remaining percentage points to those with largest remainders
+          const totalFloored = rawData.reduce((sum, d) => sum + d.floored, 0);
+          const pointsToDistribute = 100 - totalFloored;
+
+          // Sort by remainder descending to allocate extra points
+          const sorted = [...rawData].sort((a, b) => b.remainder - a.remainder);
+          const extraPoints = new Set(
+            sorted.slice(0, Math.max(0, pointsToDistribute)).map((d) => d.label),
+          );
+
+          return rawData.map((d) => ({
+            label: d.label,
+            count: d.count,
+            percentage: d.floored + (extraPoints.has(d.label) ? 1 : 0),
+          }));
+        })();
 
         // Collect custom/free-text responses
         let customResponses: CustomResponse[] = [];
