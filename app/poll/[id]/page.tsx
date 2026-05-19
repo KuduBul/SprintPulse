@@ -47,8 +47,14 @@ export default function ParticipantPollPage() {
   useEffect(() => {
     async function fetchPoll() {
       try {
-        const res = await fetch(`/api/polls/${pollId}/public`);
-        if (res.status === 404) {
+        // Determine if the ID is a UUID or an access token
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pollId);
+        const apiUrl = isUuid
+          ? `/api/polls/${pollId}/public`
+          : `/api/polls/by-token/${pollId}`;
+
+        const res = await fetch(apiUrl);
+        if (res.status === 404 || res.status === 410) {
           setNotFound(true);
           setLoading(false);
           return;
@@ -61,11 +67,14 @@ export default function ParticipantPollPage() {
         const data: PollData = await res.json();
         setPoll(data);
 
+        // Use the actual poll UUID for session checks (pollId might be a token)
+        const actualPollId = data.id;
+
         // Check if session already exists for this poll
-        const existingSession = getSession(pollId);
+        const existingSession = getSession(actualPollId);
         if (existingSession) {
           // Verify with server that the response still exists (may have been reset)
-          const checkRes = await fetch(`/api/polls/${pollId}/session-check`, {
+          const checkRes = await fetch(`/api/polls/${actualPollId}/session-check`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessionToken: existingSession.token }),
@@ -77,7 +86,7 @@ export default function ParticipantPollPage() {
             setAlreadySubmitted(true);
           } else {
             // Server says no submission exists — clear stale local session
-            localStorage.removeItem(`session_${pollId}`);
+            localStorage.removeItem(`session_${actualPollId}`);
           }
         }
       } catch {
@@ -233,11 +242,12 @@ export default function ParticipantPollPage() {
             poll={poll}
             facilitatorState={poll.facilitatorState}
             participantName={participantName}
-            sessionToken={getSession(pollId)?.token || ''}
-            pollId={pollId}
+            sessionToken={getSession(poll?.id || pollId)?.token || ''}
+            pollId={poll?.id || pollId}
             isTestMode={isTestMode}
             onSubmit={async (responses) => {
-              const res = await fetch(`/api/polls/${pollId}/respond`, {
+              const actualId = poll?.id || pollId;
+              const res = await fetch(`/api/polls/${actualId}/respond`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(responses),
@@ -246,7 +256,7 @@ export default function ParticipantPollPage() {
                 const data = await res.json().catch(() => ({}));
                 throw new Error(data?.error?.message || 'Submission failed');
               }
-            }}
+            }}}
           />
         )}
       </main>
