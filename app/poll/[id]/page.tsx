@@ -102,7 +102,8 @@ export default function ParticipantPollPage() {
   // Restore name from session on mount (for page refresh scenario where session exists but not yet submitted)
   useEffect(() => {
     if (!loading && poll && !alreadySubmitted) {
-      const existingSession = getSession(pollId);
+      const actualId = poll.id;
+      const existingSession = getSession(actualId);
       if (existingSession) {
         setParticipantName(existingSession.name);
         setSessionCreated(true);
@@ -124,7 +125,9 @@ export default function ParticipantPollPage() {
       return;
     }
 
-    createSession(pollId, trimmedName);
+    // Use the actual poll UUID for session storage (not the URL token)
+    const actualId = poll?.id || pollId;
+    createSession(actualId, trimmedName);
     setParticipantName(trimmedName);
     setSessionCreated(true);
   }
