@@ -6,7 +6,7 @@ This plan implements team-based poll access for SprintPulse. It adds a `Team` en
 
 ## Tasks
 
-- [ ] 1. Database schema: Add Team table and teamId on Poll
+- [x] 1. Database schema: Add Team table and teamId on Poll
   - [x] 1.1 Create database migration for Team table and Poll.teamId column
     - Apply SQL migration via `mcp_supabase_apply_migration` to create the `Team` table with columns: `id` (uuid PK), `name` (varchar 100), `pin` (varchar 6, unique), `userId` (text), `isDeleted` (boolean default false), `createdAt`, `updatedAt`
     - Add nullable `teamId` (uuid) column to `Poll` table with a foreign key to `Team.id`
@@ -20,7 +20,7 @@ This plan implements team-based poll access for SprintPulse. It adds a `Team` en
     - Run `npx prisma generate` to regenerate the Prisma client
     - _Requirements: 1.1, 3.1_
 
-- [ ] 2. Validation schemas for teams
+- [x] 2. Validation schemas for teams
   - [x] 2.1 Add team-related Zod schemas to `lib/validators/schemas.ts`
     - Add `CreateTeamSchema`: `{ name: z.string().min(1).max(100) }`
     - Add `UpdateTeamSchema`: `{ name: z.string().min(1).max(100) }`
@@ -143,7 +143,7 @@ This plan implements team-based poll access for SprintPulse. It adds a `Team` en
 - [x] 8. Checkpoint
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. Teams management page for facilitators
+- [x] 9. Teams management page for facilitators
   - [x] 9.1 Create `app/admin/teams/page.tsx` with full team CRUD UI
     - Display list of facilitator's teams with name, PIN (prominent), and creation date
     - Include "Create Team" form with name input and validation
@@ -157,7 +157,7 @@ This plan implements team-based poll access for SprintPulse. It adds a `Team` en
     - Update `app/admin/layout.tsx` to include a "Teams" link in the navigation
     - _Requirements: 5.1_
 
-- [ ] 10. Update poll creation/edit forms with team selector
+- [x] 10. Update poll creation/edit forms with team selector
   - [x] 10.1 Create `components/admin/TeamSelector.tsx` component
     - Dropdown component that fetches and displays facilitator's teams
     - Accept `value` and `onChange` props for controlled usage
@@ -181,7 +181,7 @@ This plan implements team-based poll access for SprintPulse. It adds a `Team` en
     - Include `teamId` in PUT request body when changed
     - _Requirements: 3.2, 6.4_
 
-- [ ] 11. Update admin dashboard to show team info on polls
+- [x] 11. Update admin dashboard to show team info on polls
   - [x] 11.1 Update `app/admin/page.tsx` to display team name per poll
     - Fetch teams list alongside polls
     - Display team name badge next to each poll title
