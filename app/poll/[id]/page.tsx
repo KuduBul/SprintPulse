@@ -256,7 +256,7 @@ export default function ParticipantPollPage() {
                 const data = await res.json().catch(() => ({}));
                 throw new Error(data?.error?.message || 'Submission failed');
               }
-            }}}
+            }}
           />
         )}
       </main>
