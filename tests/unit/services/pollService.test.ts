@@ -709,6 +709,241 @@ describe('PollService', () => {
     });
   });
 
+  describe('ownership enforcement', () => {
+    const OWNER_ID = 'owner-user-id';
+    const OTHER_USER_ID = 'other-user-id';
+
+    describe('createPoll sets userId on record', () => {
+      it('passes userId to the Prisma create call', async () => {
+        let createData: any;
+        mockPrisma.$transaction.mockImplementation(async (fn: any) => {
+          const tx = {
+            poll: {
+              create: vi.fn().mockImplementation((args: any) => {
+                createData = args.data;
+                return {
+                  id: 'poll-new',
+                  ...args.data,
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                  isDeleted: false,
+                  backgroundImageUrl: null,
+                };
+              }),
+            },
+            auditLog: {
+              create: vi.fn(),
+            },
+          };
+          return fn(tx);
+        });
+
+        await pollService.createPoll({ title: 'Ownership Test' }, OWNER_ID);
+
+        expect(createData.userId).toBe(OWNER_ID);
+      });
+
+      it('returned poll has the correct userId', async () => {
+        const mockPoll = {
+          id: 'poll-owned',
+          title: 'My Poll',
+          description: null,
+          backgroundImageUrl: null,
+          userId: OWNER_ID,
+          facilitatorState: { _v: 1, votingOpen: false, liveResults: false, anonymise: true, revealStage: 'HIDDEN' },
+          isDeleted: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        mockPrisma.$transaction.mockImplementation(async (fn: any) => {
+          const tx = {
+            poll: {
+              create: vi.fn().mockResolvedValue(mockPoll),
+            },
+            auditLog: {
+              create: vi.fn(),
+            },
+          };
+          return fn(tx);
+        });
+
+        const result = await pollService.createPoll({ title: 'My Poll' }, OWNER_ID);
+
+        expect(result.userId).toBe(OWNER_ID);
+      });
+    });
+
+    describe('listPolls filters by userId', () => {
+      it('queries Prisma with the provided userId filter', async () => {
+        mockPrisma.poll.findMany.mockResolvedValue([]);
+
+        await pollService.listPolls(OWNER_ID);
+
+        expect(mockPrisma.poll.findMany).toHaveBeenCalledWith({
+          where: { userId: OWNER_ID, isDeleted: false },
+          orderBy: { createdAt: 'desc' },
+        });
+      });
+
+      it('does not return polls belonging to other users', async () => {
+        const ownerPolls = [
+          { id: 'poll-1', title: 'Owner Poll', userId: OWNER_ID, isDeleted: false },
+        ];
+
+        mockPrisma.poll.findMany.mockResolvedValue(ownerPolls);
+
+        const result = await pollService.listPolls(OWNER_ID);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].userId).toBe(OWNER_ID);
+        // Verify the query was scoped to the owner
+        expect(mockPrisma.poll.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: expect.objectContaining({ userId: OWNER_ID }),
+          }),
+        );
+      });
+
+      it('returns empty array when user has no polls', async () => {
+        mockPrisma.poll.findMany.mockResolvedValue([]);
+
+        const result = await pollService.listPolls(OTHER_USER_ID);
+
+        expect(result).toEqual([]);
+        expect(mockPrisma.poll.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: expect.objectContaining({ userId: OTHER_USER_ID }),
+          }),
+        );
+      });
+    });
+
+    describe('getPoll returns null for wrong owner', () => {
+      it('returns null when userId does not match poll owner', async () => {
+        mockPrisma.poll.findFirst.mockResolvedValue(null);
+
+        const result = await pollService.getPoll('poll-1', OTHER_USER_ID);
+
+        expect(result).toBeNull();
+        expect(mockPrisma.poll.findFirst).toHaveBeenCalledWith({
+          where: { id: 'poll-1', userId: OTHER_USER_ID, isDeleted: false },
+        });
+      });
+
+      it('returns the poll when userId matches the owner', async () => {
+        const mockPoll = {
+          id: 'poll-1',
+          title: 'Owner Poll',
+          userId: OWNER_ID,
+          isDeleted: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        mockPrisma.poll.findFirst.mockResolvedValue(mockPoll);
+
+        const result = await pollService.getPoll('poll-1', OWNER_ID);
+
+        expect(result).not.toBeNull();
+        expect(result!.id).toBe('poll-1');
+      });
+    });
+
+    describe('updatePoll returns null for wrong owner', () => {
+      it('returns null when userId does not match poll owner', async () => {
+        // findFirst returns null because the ownership check fails
+        mockPrisma.poll.findFirst.mockResolvedValue(null);
+
+        const result = await pollService.updatePoll('poll-1', { title: 'Hacked' }, OTHER_USER_ID);
+
+        expect(result).toBeNull();
+        expect(mockPrisma.poll.findFirst).toHaveBeenCalledWith({
+          where: { id: 'poll-1', userId: OTHER_USER_ID, isDeleted: false },
+        });
+      });
+
+      it('does not execute the update transaction when ownership check fails', async () => {
+        mockPrisma.poll.findFirst.mockResolvedValue(null);
+
+        await pollService.updatePoll('poll-1', { title: 'Hacked' }, OTHER_USER_ID);
+
+        expect(mockPrisma.$transaction).not.toHaveBeenCalled();
+      });
+
+      it('proceeds with update when userId matches the owner', async () => {
+        const existingPoll = {
+          id: 'poll-1',
+          title: 'Original',
+          userId: OWNER_ID,
+          isDeleted: false,
+        };
+
+        mockPrisma.poll.findFirst.mockResolvedValue(existingPoll);
+
+        const updatedPoll = {
+          id: 'poll-1',
+          title: 'Updated',
+          userId: OWNER_ID,
+          isDeleted: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        mockPrisma.$transaction.mockImplementation(async (fn: any) => {
+          const tx = {
+            poll: {
+              update: vi.fn().mockResolvedValue(updatedPoll),
+            },
+            auditLog: {
+              create: vi.fn(),
+            },
+          };
+          return fn(tx);
+        });
+
+        const result = await pollService.updatePoll('poll-1', { title: 'Updated' }, OWNER_ID);
+
+        expect(result).not.toBeNull();
+        expect(result!.title).toBe('Updated');
+        expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('deletePoll returns false for wrong owner', () => {
+      it('returns false when userId does not match poll owner', async () => {
+        mockPrisma.poll.findFirst.mockResolvedValue(null);
+
+        const result = await pollService.deletePoll('poll-1', OTHER_USER_ID);
+
+        expect(result).toBe(false);
+        expect(mockPrisma.$transaction).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('clonePoll returns null for wrong owner', () => {
+      it('returns null when userId does not match poll owner', async () => {
+        mockPrisma.poll.findFirst.mockResolvedValue(null);
+
+        const result = await pollService.clonePoll('poll-1', OTHER_USER_ID);
+
+        expect(result).toBeNull();
+        expect(mockPrisma.$transaction).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('resetResponses returns false for wrong owner', () => {
+      it('returns false when userId does not match poll owner', async () => {
+        mockPrisma.poll.findFirst.mockResolvedValue(null);
+
+        const result = await pollService.resetResponses('poll-1', OTHER_USER_ID);
+
+        expect(result).toBe(false);
+        expect(mockPrisma.$transaction).not.toHaveBeenCalled();
+      });
+    });
+  });
+
   describe('getPublicPoll', () => {
     it('returns poll with questions and parsed facilitator state', async () => {
       const mockPoll = {

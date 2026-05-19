@@ -35,12 +35,14 @@ export const ValidatePinSchema = z.object({
 /**
  * Schema for creating a new poll.
  * Title: 1–200 chars (required), Description: 0–1000 chars (optional).
- * teamId: required UUID for team assignment.
+ * teamId: optional UUID for team assignment.
+ * tokenExpiresAt: optional datetime for access token expiry.
  */
 export const CreatePollSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(1000).optional(),
-  teamId: z.string().uuid(),
+  teamId: z.string().uuid().optional(),
+  tokenExpiresAt: z.string().datetime().nullable().optional(),
 });
 
 /**
@@ -51,7 +53,16 @@ export const UpdatePollSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(1000).optional(),
   backgroundImageUrl: z.string().url().optional(),
-  teamId: z.string().uuid().optional(),
+  teamId: z.string().uuid().nullable().optional(),
+  tokenExpiresAt: z.string().datetime().nullable().optional(),
+});
+
+/**
+ * Schema for validating an access token path parameter.
+ * Token must be 32–64 characters (base64url encoded).
+ */
+export const AccessTokenParamSchema = z.object({
+  token: z.string().min(32).max(64),
 });
 
 /**
@@ -116,6 +127,7 @@ export type UpdateTeamInput = z.infer<typeof UpdateTeamSchema>;
 export type ValidatePinInput = z.infer<typeof ValidatePinSchema>;
 export type CreatePollInput = z.infer<typeof CreatePollSchema>;
 export type UpdatePollInput = z.infer<typeof UpdatePollSchema>;
+export type AccessTokenParam = z.infer<typeof AccessTokenParamSchema>;
 export type CreateQuestionInput = z.infer<typeof CreateQuestionSchema>;
 export type UpdateQuestionInput = z.infer<typeof UpdateQuestionSchema>;
 export type Answer = z.infer<typeof AnswerSchema>;

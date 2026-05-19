@@ -29,6 +29,8 @@ model Poll {
   title              String     @db.VarChar(200)
   description        String?    @db.VarChar(1000)
   backgroundImageUrl String?
+  accessToken        String     @unique @db.VarChar(64)
+  tokenExpiresAt     DateTime?
   facilitatorState   Json       @default("{\"_v\":1,\"votingOpen\":false,\"liveResults\":false,\"anonymise\":true,\"revealStage\":\"HIDDEN\"}")
   isDeleted          Boolean    @default(false)
   teamId             String?
@@ -42,6 +44,7 @@ model Poll {
 
   @@index([userId])
   @@index([teamId])
+  @@index([accessToken])
 }
 
 model Question {

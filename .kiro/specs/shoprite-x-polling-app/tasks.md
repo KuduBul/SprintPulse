@@ -44,7 +44,7 @@ This plan implements a web-based internal polling and live facilitation tool usi
     - Create `lib/validators/imageValidator.ts` for file type (JPEG/PNG/WebP) and size (≤5MB) validation
     - _Requirements: 1.2, 1.3, 1.4, 1.5, 2.2, 2.3, 2.5, 4.4, 11.1_
 
-  - [ ]* 2.2 Write property tests for validation schemas
+  - [x] 2.2 Write property tests for validation schemas
     - **Property 2: Image type validation accepts only allowed formats**
     - **Property 6: Question count validation**
     - **Property 7: Option count validation**
@@ -71,7 +71,7 @@ This plan implements a web-based internal polling and live facilitation tool usi
     - All mutations log via AuditLogger
     - _Requirements: 1.1, 1.6, 1.7, 1.8, 1.9, 1.10_
 
-  - [ ]* 3.3 Write property tests for Poll Service
+  - [x] 3.3 Write property tests for Poll Service
     - **Property 1: Poll creation round-trip**
     - **Property 3: Poll reset removes all responses**
     - **Property 4: Clone produces identical questions with zero responses and preserves original**
@@ -98,12 +98,12 @@ This plan implements a web-based internal polling and live facilitation tool usi
     - Enforce unique constraint `(pollId, questionId, sessionToken)` for deduplication
     - _Requirements: 4.5, 4.8, 4.10, 6.2, 6.3, 6.5, 6.7, 7.1–7.8_
 
-  - [ ]* 4.2 Write property tests for Response Service — submission rules
+  - [x] 4.2 Write property tests for Response Service — submission rules
     - **Property 10: Incomplete submissions are rejected**
     - **Property 11: Duplicate submission prevention (idempotence)**
     - **Validates: Requirements 4.5, 4.8, 4.10**
 
-  - [ ]* 4.3 Write property tests for Response Service — results aggregation
+  - [x] 4.3 Write property tests for Response Service — results aggregation
     - **Property 16: Test responses excluded from public results and participant count**
     - **Property 17: Clearing test responses preserves real data**
     - **Property 18: Results aggregation correctness**
@@ -120,12 +120,12 @@ This plan implements a web-based internal polling and live facilitation tool usi
     - Log specific actions: `VOTING_OPENED`, `VOTING_CLOSED`, `REVEAL_STAGE_CHANGED`, `FACILITATOR_STATE_UPDATED`
     - _Requirements: 5.1–5.8_
 
-  - [ ]* 4.5 Write property tests for Facilitator Service
+  - [x] 4.5 Write property tests for Facilitator Service
     - **Property 14: Facilitator state persistence round-trip**
     - **Property 15: Last-write-wins for concurrent state updates**
     - **Validates: Requirements 5.6, 5.8**
 
-  - [ ]* 4.6 Write property test for anonymisation
+  - [x] 4.6 Write property test for anonymisation
     - **Property 13: Anonymisation replaces all participant names**
     - **Validates: Requirements 5.5, 7.5**
 
@@ -137,7 +137,7 @@ This plan implements a web-based internal polling and live facilitation tool usi
     - Log `DATA_PURGED` action via AuditLogger with counts
     - _Requirements: 9.1–9.6_
 
-  - [ ]* 5.2 Write property tests for Retention Service
+  - [x] 5.2 Write property tests for Retention Service
     - **Property 25: Retention purge respects age thresholds**
     - **Property 26: Audit log retention purge**
     - **Property 27: Soft-deleted poll hard-deletion after grace period**
@@ -148,15 +148,15 @@ This plan implements a web-based internal polling and live facilitation tool usi
     - Apply sanitisation in the Response Service before persisting custom text
     - _Requirements: 11.2_
 
-  - [ ]* 5.4 Write property test for XSS sanitisation
+  - [x] 5.4 Write property test for XSS sanitisation
     - **Property 30: XSS sanitisation of free-text input**
     - **Validates: Requirements 11.2**
 
-  - [ ]* 5.5 Write property test for audit log immutability
+  - [x] 5.5 Write property test for audit log immutability
     - **Property 24: Audit log immutability**
     - **Validates: Requirements 8.14**
 
-  - [ ]* 5.6 Write property test for audit log completeness
+  - [x] 5.6 Write property test for audit log completeness
     - **Property 23: Audit log completeness**
     - **Validates: Requirements 8.1–8.12**
 
@@ -170,7 +170,7 @@ This plan implements a web-based internal polling and live facilitation tool usi
     - Return 401 with `{error: {code: "UNAUTHORIZED", message: "..."}}` if invalid
     - _Requirements: 10.1, 10.2, 10.3_
 
-  - [ ]* 7.2 Write property tests for Admin Auth middleware
+  - [x] 7.2 Write property tests for Admin Auth middleware
     - **Property 28: Admin auth rejects invalid tokens**
     - **Property 29: Admin auth accepts valid tokens**
     - **Validates: Requirements 10.1, 10.2, 10.3**
@@ -261,7 +261,7 @@ This plan implements a web-based internal polling and live facilitation tool usi
     - Handle image load failure with placeholder + error message
     - _Requirements: 3.7, 3.8, 3.9, 3.10, 3.6_
 
-  - [ ]* 11.5 Write property test for canvas z-index ordering
+  - [x] 11.5 Write property test for canvas z-index ordering
     - **Property 8: Canvas z-index matches placement order**
     - **Validates: Requirements 3.11**
 
@@ -274,7 +274,7 @@ This plan implements a web-based internal polling and live facilitation tool usi
     - Display "Already submitted" if session token found for this poll
     - _Requirements: 4.1, 4.2, 4.3, 4.7, 4.8_
 
-  - [ ]* 12.2 Write property test for session token persistence
+  - [x] 12.2 Write property test for session token persistence
     - **Property 9: Session token persistence round-trip**
     - **Validates: Requirements 4.2, 4.3**
 
@@ -291,7 +291,7 @@ This plan implements a web-based internal polling and live facilitation tool usi
     - ARIA labels on canvas-placed questions
     - _Requirements: 4.4–4.11, 6.1, 6.6, 13.3_
 
-  - [ ]* 12.4 Write property test for ARIA labels on canvas questions
+  - [x] 12.4 Write property test for ARIA labels on canvas questions
     - **Property 31: ARIA labels on canvas-placed questions**
     - **Validates: Requirements 13.3**
 
@@ -323,7 +323,7 @@ This plan implements a web-based internal polling and live facilitation tool usi
 - [x] 14. Checkpoint — Frontend complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 15. Integration wiring and final polish
+- [x] 15. Integration wiring and final polish
   - [x] 15.1 Wire Supabase Storage for image uploads
     - Configure Supabase Storage client in `lib/storage/supabaseStorage.ts`
     - Create `poll-backgrounds` bucket configuration
@@ -353,7 +353,7 @@ This plan implements a web-based internal polling and live facilitation tool usi
     - Add screen reader announcements for facilitator state changes (aria-live regions)
     - _Requirements: 13.1, 13.2, 13.3, 13.5, 13.6_
 
-  - [ ]* 15.5 Write integration tests for API routes
+  - [x] 15.5 Write integration tests for API routes
     - Test full request/response cycles for poll CRUD, question CRUD, response submission
     - Test admin auth middleware enforcement (valid/invalid tokens)
     - Test rate limiting behaviour

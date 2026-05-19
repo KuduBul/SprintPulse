@@ -1,6 +1,7 @@
 import { Poll, Question, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db/client';
 import { auditLogger, PrismaTransactionClient } from './auditLogger';
+import { tokenService } from './tokenService';
 import { CreatePollInput, UpdatePollInput } from '@/lib/validators/schemas';
 
 /**
@@ -53,6 +54,7 @@ export interface PollService {
   listPublicPollsByTeam(teamId: string): Promise<Poll[]>;
   listPollsByTeam(userId: string, teamId: string): Promise<Poll[]>;
   getPublicPoll(id: string): Promise<PublicPollView | null>;
+  getPublicPollByToken(token: string): Promise<PublicPollView | null>;
 }
 
 /**
@@ -63,12 +65,15 @@ export function createPollService(): PollService {
   return {
     async createPoll(data: CreatePollInput, userId: string): Promise<Poll> {
       const poll = await prisma.$transaction(async (tx: PrismaTransactionClient) => {
+        const accessToken = tokenService.generateToken();
+
         const created = await tx.poll.create({
           data: {
             title: data.title,
             description: data.description ?? null,
             userId,
             teamId: data.teamId ?? null,
+            accessToken,
             facilitatorState: DEFAULT_FACILITATOR_STATE as unknown as Prisma.InputJsonValue,
           },
         });
@@ -164,12 +169,15 @@ export function createPollService(): PollService {
       }
 
       const poll = await prisma.$transaction(async (tx: PrismaTransactionClient) => {
+        const accessToken = tokenService.generateToken();
+
         const cloned = await tx.poll.create({
           data: {
             title: `${existing.title} (Copy)`,
             description: existing.description,
             backgroundImageUrl: existing.backgroundImageUrl,
             userId,
+            accessToken,
             facilitatorState: DEFAULT_FACILITATOR_STATE as unknown as Prisma.InputJsonValue,
           },
         });
@@ -283,6 +291,54 @@ export function createPollService(): PollService {
       });
 
       if (!poll) {
+        return null;
+      }
+
+      const state = poll.facilitatorState as Record<string, unknown>;
+
+      return {
+        id: poll.id,
+        title: poll.title,
+        description: poll.description,
+        backgroundImageUrl: poll.backgroundImageUrl,
+        facilitatorState: {
+          votingOpen: Boolean(state.votingOpen),
+          liveResults: Boolean(state.liveResults),
+          anonymise: Boolean(state.anonymise),
+          revealStage: String(state.revealStage ?? 'HIDDEN'),
+        },
+        questions: poll.questions.map((q) => ({
+          id: q.id,
+          text: q.text,
+          options: q.options,
+          allowCustom: q.allowCustom,
+          position: q.position,
+          displayOrder: q.displayOrder,
+        })),
+      };
+    },
+
+    async getPublicPollByToken(token: string): Promise<PublicPollView | null> {
+      const poll = await prisma.poll.findUnique({
+        where: { accessToken: token },
+        include: {
+          questions: {
+            orderBy: { displayOrder: 'asc' },
+          },
+        },
+      });
+
+      if (!poll) {
+        return null;
+      }
+
+      // Reject deleted polls
+      if (poll.isDeleted) {
+        return null;
+      }
+
+      // Reject expired tokens
+      if (poll.tokenExpiresAt && new Date() > poll.tokenExpiresAt) {
         return null;
       }
 

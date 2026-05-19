@@ -29,18 +29,20 @@ export const POST = withAuth(async (request: Request, context: { userId: string 
       return validationError(formatZodError(result.error));
     }
 
-    // Validate team exists and is owned by the user
-    const team = await teamService.getTeam(result.data.teamId, context.userId);
-    if (!team) {
-      return NextResponse.json(
-        {
-          error: {
-            code: 'FORBIDDEN',
-            message: 'Cannot assign to a team you do not own',
+    // Validate team exists and is owned by the user (if teamId provided)
+    if (result.data.teamId) {
+      const team = await teamService.getTeam(result.data.teamId, context.userId);
+      if (!team) {
+        return NextResponse.json(
+          {
+            error: {
+              code: 'FORBIDDEN',
+              message: 'Cannot assign to a team you do not own',
+            },
           },
-        },
-        { status: 403 }
-      );
+          { status: 403 }
+        );
+      }
     }
 
     const poll = await pollService.createPoll(result.data, context.userId);

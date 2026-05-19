@@ -19,6 +19,7 @@ export type AuditAction =
   | 'REVEAL_STAGE_CHANGED'
   | 'VOTING_OPENED'
   | 'VOTING_CLOSED'
+  | 'TOKEN_REGENERATED'
   | 'DATA_PURGED';
 
 /**
