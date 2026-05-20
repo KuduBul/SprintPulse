@@ -42,6 +42,7 @@ export default function ParticipantPollPage() {
   const [participantName, setParticipantName] = useState('');
   const [nameError, setNameError] = useState('');
   const [sessionCreated, setSessionCreated] = useState(false);
+  const [currentSessionToken, setCurrentSessionToken] = useState('');
 
   // Fetch poll data and check session on mount
   useEffect(() => {
@@ -106,6 +107,7 @@ export default function ParticipantPollPage() {
       const existingSession = getSession(actualId);
       if (existingSession) {
         setParticipantName(existingSession.name);
+        setCurrentSessionToken(existingSession.token);
         setSessionCreated(true);
       }
     }
@@ -127,7 +129,8 @@ export default function ParticipantPollPage() {
 
     // Use the actual poll UUID for session storage (not the URL token)
     const actualId = poll?.id || pollId;
-    createSession(actualId, trimmedName);
+    const newToken = createSession(actualId, trimmedName);
+    setCurrentSessionToken(newToken);
     setParticipantName(trimmedName);
     setSessionCreated(true);
   }
@@ -245,7 +248,7 @@ export default function ParticipantPollPage() {
             poll={poll}
             facilitatorState={poll.facilitatorState}
             participantName={participantName}
-            sessionToken={getSession(poll?.id || pollId)?.token || ''}
+            sessionToken={currentSessionToken}
             pollId={poll?.id || pollId}
             isTestMode={isTestMode}
             onSubmit={async (responses) => {
