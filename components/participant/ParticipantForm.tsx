@@ -346,6 +346,7 @@ export function ParticipantForm({
       ) : (
         <ListLayout
           questions={sortedQuestions}
+          backgroundImageUrl={poll.backgroundImageUrl}
           selections={selections}
           customTexts={customTexts}
           errors={errors}
@@ -439,7 +440,7 @@ export function ParticipantForm({
 // CanvasLayout — renders questions at their canvas positions (desktop)
 // --------------------------------------------------------------------------
 
-interface LayoutProps {
+export interface LayoutProps {
   questions: Question[];
   backgroundImageUrl?: string | null;
   selections: Record<string, string>;
@@ -554,43 +555,97 @@ function CanvasLayout({
 }
 
 // --------------------------------------------------------------------------
+// StickyImageContainer — sticky background image for mobile
+// --------------------------------------------------------------------------
+
+export interface StickyImageContainerProps {
+  imageUrl: string;
+}
+
+export function StickyImageContainer({ imageUrl }: StickyImageContainerProps) {
+  const [isVisible, setIsVisible] = useState(true);
+
+  function handleImageError() {
+    setIsVisible(false);
+  }
+
+  if (!isVisible) {
+    return null;
+  }
+
+  return (
+    <div
+      role="img"
+      aria-label="Poll background image"
+      style={{
+        position: 'sticky',
+        top: 0,
+        width: '100vw',
+        marginLeft: 'calc(-50vw + 50%)',
+        aspectRatio: '16 / 9',
+        overflow: 'hidden',
+        zIndex: 10,
+      }}
+    >
+      <img
+        src={imageUrl}
+        alt=""
+        onError={handleImageError}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block',
+        }}
+      />
+    </div>
+  );
+}
+
+// --------------------------------------------------------------------------
 // ListLayout — vertical list for mobile
 // --------------------------------------------------------------------------
 
-function ListLayout({
+export function ListLayout({
   questions,
+  backgroundImageUrl,
   selections,
   customTexts,
   errors,
   onOptionSelect,
   onCustomTextChange,
   disabled,
-}: Omit<LayoutProps, 'backgroundImageUrl'>) {
+}: LayoutProps) {
   return (
     <div role="list" aria-label="Poll questions">
-      {questions.map((question) => (
-        <div
-          key={question.id}
-          role="listitem"
-          style={{
-            marginBottom: 'var(--space-4)',
-            padding: 'var(--space-4)',
-            backgroundColor: 'var(--color-bg-primary)',
-            border: '1px solid var(--color-border-default)',
-            borderRadius: 'var(--radius-lg)',
-          }}
-        >
-          <QuestionCard
-            question={question}
-            selection={selections[question.id] || ''}
-            customText={customTexts[question.id] || ''}
-            error={errors[question.id]}
-            onOptionSelect={onOptionSelect}
-            onCustomTextChange={onCustomTextChange}
-            disabled={disabled}
-          />
-        </div>
-      ))}
+      {backgroundImageUrl && (
+        <StickyImageContainer imageUrl={backgroundImageUrl} />
+      )}
+      <div>
+        {questions.map((question) => (
+          <div
+            key={question.id}
+            role="listitem"
+            style={{
+              marginBottom: 'var(--space-4)',
+              padding: 'var(--space-4)',
+              backgroundColor: 'var(--color-bg-primary)',
+              border: '1px solid var(--color-border-default)',
+              borderRadius: 'var(--radius-lg)',
+            }}
+          >
+            <QuestionCard
+              question={question}
+              selection={selections[question.id] || ''}
+              customText={customTexts[question.id] || ''}
+              error={errors[question.id]}
+              onOptionSelect={onOptionSelect}
+              onCustomTextChange={onCustomTextChange}
+              disabled={disabled}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
