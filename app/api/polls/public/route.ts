@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import { pollService } from '@/lib/services';
 import { internalError } from '@/lib/api/errors';
 
+// Force dynamic rendering — this route hits the database and must never be
+// statically evaluated at build time.
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 /**
  * GET /api/polls/public — List non-deleted polls (no auth required).
  * Accepts optional `teamId` query parameter.

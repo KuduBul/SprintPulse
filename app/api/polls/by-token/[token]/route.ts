@@ -10,6 +10,11 @@ import {
 } from '@/lib/api/errors';
 import { prisma } from '@/lib/db/client';
 
+// Force dynamic rendering — this route hits the database and must never be
+// statically evaluated at build time.
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 /**
  * GET /api/polls/by-token/[token] — Validate token and return poll data for participants.
  * No authentication required.

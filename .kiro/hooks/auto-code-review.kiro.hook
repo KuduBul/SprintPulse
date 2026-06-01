@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Auto Code Review",
+  "description": "Automatically runs code review and visual verification after any spec task completes. Invokes the code-reviewer agent for static analysis, then uses Playwright to verify the page renders without errors.",
+  "version": "1",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A spec task just completed. Do two things:\n\n1. Invoke the code-reviewer agent to review the files that were just created or modified. Focus on critical issues (type safety, security, React patterns). Only report WARNING level or above.\n\n2. If the dev server is running at localhost:3000, use Playwright to navigate to the affected page and check for console errors or rendering issues. Report any problems found.\n\nKeep the output concise — just the key findings."
+  }
+}
