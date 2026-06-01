@@ -103,7 +103,7 @@ export function FacilitatorDashboard({ pollId, poll, questions }: FacilitatorDas
   // Fetch test results
   const fetchTestResults = useCallback(async () => {
     const res = await get<AggregatedResults>(
-      `/api/polls/${pollId}/results?includeTest=true`
+      `/api/polls/${pollId}/results?testOnly=true`
     );
     if (res.data) {
       setTestResults(res.data);

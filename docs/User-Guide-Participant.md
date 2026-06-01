@@ -79,6 +79,7 @@ If the facilitator resets the poll:
 - The facilitator decides when and how results are revealed
 - Results may be shown on a shared screen during the session
 - If anonymisation is enabled, your name won't appear in results
+- If anonymisation is disabled and results are set to **DETAILS**, your name will be visible next to your responses (both predefined option selections and custom text)
 
 ---
 
@@ -112,4 +113,4 @@ If the facilitator resets the poll:
 
 ---
 
-*SprintPulse v2.0.0*
+*SprintPulse v2.1.0*
