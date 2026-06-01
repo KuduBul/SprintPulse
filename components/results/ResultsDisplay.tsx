@@ -6,6 +6,7 @@ interface OptionResult {
   label: string;
   count: number;
   percentage: number;
+  participants?: string[];
 }
 
 interface CustomResponse {
@@ -40,7 +41,7 @@ export interface ResultsDisplayProps {
  * - COUNTS: shows option counts, percentages, and bar charts (no custom responses)
  * - DETAILS: shows everything including free-text custom responses with participant labels
  */
-export function ResultsDisplay({ results, revealStage, anonymise: _anonymise }: ResultsDisplayProps) {
+export function ResultsDisplay({ results, revealStage, anonymise }: ResultsDisplayProps) {
   if (revealStage === 'HIDDEN') {
     return (
       <div
@@ -83,6 +84,7 @@ export function ResultsDisplay({ results, revealStage, anonymise: _anonymise }: 
           key={question.questionId}
           question={question}
           revealStage={revealStage}
+          anonymise={anonymise}
         />
       ))}
     </div>
@@ -95,9 +97,11 @@ export function ResultsDisplay({ results, revealStage, anonymise: _anonymise }: 
 function QuestionResultCard({
   question,
   revealStage,
+  anonymise,
 }: {
   question: QuestionResult;
   revealStage: RevealStage;
+  anonymise: boolean;
 }) {
   return (
     <div
@@ -140,54 +144,80 @@ function QuestionResultCard({
                 role="listitem"
                 style={{
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--space-3)',
+                  flexDirection: 'column',
+                  gap: 'var(--space-1)',
                 }}
               >
                 <div
                   style={{
-                    flex: 1,
-                    fontSize: 'var(--font-size-sm)',
-                    color: 'var(--color-text-primary)',
-                    minWidth: '80px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--space-3)',
                   }}
-                >
-                  {opt.label}
-                </div>
-                <div
-                  style={{
-                    width: '120px',
-                    height: '8px',
-                    backgroundColor: 'var(--color-neutral-200)',
-                    borderRadius: 'var(--radius-full)',
-                    overflow: 'hidden',
-                  }}
-                  role="progressbar"
-                  aria-valuenow={opt.percentage}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label={`${opt.label}: ${opt.percentage}%`}
                 >
                   <div
                     style={{
-                      width: `${opt.percentage}%`,
-                      height: '100%',
-                      backgroundColor: 'var(--color-primary-500)',
-                      borderRadius: 'var(--radius-full)',
-                      transition: 'width var(--transition-normal)',
+                      flex: 1,
+                      fontSize: 'var(--font-size-sm)',
+                      color: 'var(--color-text-primary)',
+                      minWidth: '80px',
                     }}
-                  />
+                  >
+                    {opt.label}
+                  </div>
+                  <div
+                    style={{
+                      width: '120px',
+                      height: '8px',
+                      backgroundColor: 'var(--color-neutral-200)',
+                      borderRadius: 'var(--radius-full)',
+                      overflow: 'hidden',
+                    }}
+                    role="progressbar"
+                    aria-valuenow={opt.percentage}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={`${opt.label}: ${opt.percentage}%`}
+                  >
+                    <div
+                      style={{
+                        width: `${opt.percentage}%`,
+                        height: '100%',
+                        backgroundColor: 'var(--color-primary-500)',
+                        borderRadius: 'var(--radius-full)',
+                        transition: 'width var(--transition-normal)',
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 'var(--font-size-xs)',
+                      color: 'var(--color-text-secondary)',
+                      minWidth: '60px',
+                      textAlign: 'right',
+                    }}
+                  >
+                    {opt.count} ({opt.percentage}%)
+                  </div>
                 </div>
-                <div
-                  style={{
-                    fontSize: 'var(--font-size-xs)',
-                    color: 'var(--color-text-secondary)',
-                    minWidth: '60px',
-                    textAlign: 'right',
-                  }}
-                >
-                  {opt.count} ({opt.percentage}%)
-                </div>
+                {revealStage === 'DETAILS' && opt.participants && opt.participants.length > 0 && (
+                  <div
+                    style={{
+                      paddingLeft: 'var(--space-2)',
+                      fontSize: 'var(--font-size-sm)',
+                      color: 'var(--color-text-secondary)',
+                    }}
+                  >
+                    {opt.participants.map((name, idx) => (
+                      <span
+                        key={idx}
+                        style={{ fontWeight: 'var(--font-weight-medium)' }}
+                      >
+                        {name}{idx < opt.participants!.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>

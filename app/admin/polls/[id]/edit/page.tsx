@@ -230,6 +230,8 @@ export default function EditPollPage() {
           onSubmit={handlePollSubmit}
           submitLabel="Save Changes"
           isEdit={true}
+          hideSubmitButton={true}
+          formId="edit-poll-form"
         />
       </section>
 
@@ -401,6 +403,26 @@ export default function EditPollPage() {
           />
         </section>
       )}
+
+      {/* Save Button */}
+      <section aria-label="Save poll">
+        <button
+          type="submit"
+          form="edit-poll-form"
+          style={{
+            padding: 'var(--space-3) var(--space-6)',
+            backgroundColor: 'var(--color-primary-700)',
+            color: 'var(--color-text-on-primary)',
+            border: 'none',
+            borderRadius: 'var(--radius-md)',
+            fontSize: 'var(--font-size-base)',
+            fontWeight: 'var(--font-weight-semibold)',
+            cursor: 'pointer',
+          }}
+        >
+          Save Changes
+        </button>
+      </section>
     </div>
   );
 }

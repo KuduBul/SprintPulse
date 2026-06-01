@@ -188,6 +188,7 @@ describe('Integration: Facilitator API Routes', () => {
       expect(body.participantCount).toBe(5);
       expect(responseService.getResults).toHaveBeenCalledWith('poll-1', {
         includeTest: false,
+        testOnly: false,
         revealStage: 'DETAILS',
         anonymise: false,
       });
@@ -206,6 +207,7 @@ describe('Integration: Facilitator API Routes', () => {
       expect(response.status).toBe(200);
       expect(responseService.getResults).toHaveBeenCalledWith('poll-1', {
         includeTest: true,
+        testOnly: false,
         revealStage: 'DETAILS',
         anonymise: false,
       });

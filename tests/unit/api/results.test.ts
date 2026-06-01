@@ -87,6 +87,7 @@ describe('app/api/polls/[id]/results/route.ts (Admin)', () => {
       expect(body).toEqual(mockResults);
       expect(responseService.getResults).toHaveBeenCalledWith(mockPoll.id, {
         includeTest: false,
+        testOnly: false,
         revealStage: 'DETAILS',
         anonymise: false,
       });
@@ -106,6 +107,7 @@ describe('app/api/polls/[id]/results/route.ts (Admin)', () => {
       expect(response.status).toBe(200);
       expect(responseService.getResults).toHaveBeenCalledWith(mockPoll.id, {
         includeTest: false,
+        testOnly: false,
         revealStage: 'DETAILS',
         anonymise: false,
       });

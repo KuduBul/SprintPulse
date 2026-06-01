@@ -49,6 +49,10 @@ export function useAuth() {
     return supabase.auth.signOut();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const resetPassword = useCallback(async (email: string) => {
+    return supabase.auth.resetPasswordForEmail(email);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return {
     user,
     session,
@@ -57,5 +61,6 @@ export function useAuth() {
     signIn,
     signUp,
     signOut,
+    resetPassword,
   };
 }

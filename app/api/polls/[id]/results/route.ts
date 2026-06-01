@@ -6,7 +6,8 @@ import { notFoundError, internalError } from '@/lib/api/errors';
 /**
  * GET /api/polls/[id]/results — Get full results for a poll (auth required, ownership enforced).
  * Query params:
- *   - includeTest=true: include only test responses (for test tab)
+ *   - includeTest=true: include test responses alongside real responses
+ *   - testOnly=true: return ONLY test responses (for Test Responses tab)
  * Admin always sees full details, non-anonymised.
  */
 export const GET = withAuth(async (request: Request, context: { userId: string; params?: { id: string } }) => {
@@ -20,9 +21,11 @@ export const GET = withAuth(async (request: Request, context: { userId: string; 
 
     const url = new URL(request.url);
     const includeTest = url.searchParams.get('includeTest') === 'true';
+    const testOnly = url.searchParams.get('testOnly') === 'true';
 
     const results = await responseService.getResults(id, {
       includeTest,
+      testOnly,
       revealStage: 'DETAILS',
       anonymise: false,
     });

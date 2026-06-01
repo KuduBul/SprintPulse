@@ -14,6 +14,7 @@ export type RevealStage = 'HIDDEN' | 'COUNTS' | 'DETAILS';
  */
 export interface ResultOptions {
   includeTest: boolean;
+  testOnly?: boolean;
   revealStage: RevealStage;
   anonymise: boolean;
 }
@@ -25,6 +26,7 @@ export interface OptionResult {
   label: string;
   count: number;
   percentage: number;
+  participants?: string[];
 }
 
 /**
@@ -159,9 +161,13 @@ export function createResponseService(): ResponseService {
         orderBy: { displayOrder: 'asc' },
       });
 
-      // Fetch responses, filtering test responses based on includeTest option
+      // Fetch responses, filtering based on testOnly or includeTest option
       const whereClause: Prisma.ResponseWhereInput = { pollId };
-      if (!options.includeTest) {
+      if (options.testOnly) {
+        // testOnly takes precedence: return ONLY test responses
+        whereClause.isTest = true;
+      } else if (!options.includeTest) {
+        // Default behavior: exclude test responses
         whereClause.isTest = false;
       }
 
@@ -214,7 +220,10 @@ export function createResponseService(): ResponseService {
           const pointsToDistribute = 100 - totalFloored;
 
           // Sort by remainder descending to allocate extra points
-          const sorted = [...rawData].sort((a, b) => b.remainder - a.remainder);
+          // Only distribute remainder points to options that have at least one vote
+          const sorted = [...rawData]
+            .filter((d) => d.count > 0)
+            .sort((a, b) => b.remainder - a.remainder);
           const extraPoints = new Set(
             sorted.slice(0, Math.max(0, pointsToDistribute)).map((d) => d.label),
           );
@@ -225,6 +234,22 @@ export function createResponseService(): ResponseService {
             percentage: d.floored + (extraPoints.has(d.label) ? 1 : 0),
           }));
         })();
+
+        // Populate participants for each predefined option when in DETAILS mode
+        if (options.revealStage === 'DETAILS') {
+          const tokenList = Array.from(uniqueSessionTokens);
+          for (const optResult of optionResults) {
+            const participantsForOption = questionResponses
+              .filter((r) => r.selectedOption === optResult.label)
+              .map((r) => {
+                if (options.anonymise) {
+                  return `Participant ${tokenList.indexOf(r.sessionToken) + 1}`;
+                }
+                return r.participantName;
+              });
+            optResult.participants = participantsForOption;
+          }
+        }
 
         // Collect custom/free-text responses
         let customResponses: CustomResponse[] = [];

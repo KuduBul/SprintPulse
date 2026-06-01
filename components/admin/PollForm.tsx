@@ -21,6 +21,8 @@ interface PollFormProps {
   onSubmit: (data: PollFormData) => Promise<void>;
   submitLabel: string;
   isEdit?: boolean;
+  hideSubmitButton?: boolean;
+  formId?: string;
 }
 
 interface FieldErrors {
@@ -34,7 +36,7 @@ interface FieldErrors {
  * Shared form component for creating and editing polls.
  * Handles client-side validation for title, description, and image file.
  */
-export function PollForm({ initialData, onSubmit, submitLabel, isEdit = false }: PollFormProps) {
+export function PollForm({ initialData, onSubmit, submitLabel, isEdit = false, hideSubmitButton = false, formId }: PollFormProps) {
   const [title, setTitle] = useState(initialData?.title ?? '');
   const [description, setDescription] = useState(initialData?.description ?? '');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -105,7 +107,7 @@ export function PollForm({ initialData, onSubmit, submitLabel, isEdit = false }:
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
+    <form id={formId} onSubmit={handleSubmit} noValidate>
       {submitError && (
         <div
           role="alert"
@@ -344,23 +346,25 @@ export function PollForm({ initialData, onSubmit, submitLabel, isEdit = false }:
       </div>
 
       {/* Submit button */}
-      <button
-        type="submit"
-        disabled={submitting}
-        style={{
-          padding: 'var(--space-3) var(--space-6)',
-          backgroundColor: submitting ? 'var(--color-primary-400)' : 'var(--color-primary-700)',
-          color: 'var(--color-text-on-primary)',
-          border: 'none',
-          borderRadius: 'var(--radius-md)',
-          fontSize: 'var(--font-size-base)',
-          fontWeight: 'var(--font-weight-semibold)',
-          cursor: submitting ? 'not-allowed' : 'pointer',
-          opacity: submitting ? 0.7 : 1,
-        }}
-      >
-        {submitting ? 'Saving...' : submitLabel}
-      </button>
+      {!hideSubmitButton && (
+        <button
+          type="submit"
+          disabled={submitting}
+          style={{
+            padding: 'var(--space-3) var(--space-6)',
+            backgroundColor: submitting ? 'var(--color-primary-400)' : 'var(--color-primary-700)',
+            color: 'var(--color-text-on-primary)',
+            border: 'none',
+            borderRadius: 'var(--radius-md)',
+            fontSize: 'var(--font-size-base)',
+            fontWeight: 'var(--font-weight-semibold)',
+            cursor: submitting ? 'not-allowed' : 'pointer',
+            opacity: submitting ? 0.7 : 1,
+          }}
+        >
+          {submitting ? 'Saving...' : submitLabel}
+        </button>
+      )}
     </form>
   );
 }

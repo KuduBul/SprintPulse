@@ -22,6 +22,14 @@ As a facilitator, you create teams, manage polls, control live sessions, and vie
 2. Enter your **email** and **password**
 3. Click **Sign In**
 
+### Resetting Your Password
+
+1. On the login screen, click **Forgot password?**
+2. Enter your email address
+3. Click **Send Reset Link**
+4. Check your email for a password reset link
+5. Follow the link to set a new password
+
 Your session persists across browser tabs and page refreshes. Click **Logout** in the top-right to sign out.
 
 ---
@@ -73,7 +81,9 @@ Teams let you organize polls for different groups. Each team has a unique PIN th
 1. Find the poll in the dashboard list
 2. Click **Edit**
 3. Update the title, description, team assignment, or background image
-4. Click **Save Changes**
+4. Add or edit questions in the **Questions** section
+5. Position questions on the **Visual Canvas Editor**
+6. Click **Save Changes** at the bottom of the page (below all sections)
 
 ### Filtering Polls by Team
 
@@ -170,8 +180,10 @@ Position questions visually on a background image. The canvas editor appears on 
 | Stage | What's Shown |
 |-------|-------------|
 | **HIDDEN** | No results visible |
-| **COUNTS** | Aggregated totals per option |
-| **DETAILS** | Full results including free-text and names |
+| **COUNTS** | Aggregated totals and percentages per option |
+| **DETAILS** | Full results including free-text responses and participant names for all response types |
+
+When **DETAILS** is selected and **Anonymisation** is off, participant names are shown for both custom free-text responses and predefined option selections (e.g., you can see who voted for each option).
 
 ### Typical Session Flow
 
@@ -181,6 +193,16 @@ Position questions visually on a background image. The canvas editor appears on 
 4. Monitor submissions via live statistics
 5. **Close voting** when ready
 6. **Reveal results** progressively: HIDDEN → COUNTS → DETAILS
+
+### Testing Your Poll
+
+Before going live, you can submit test responses to verify everything works:
+
+1. Open the poll in a separate browser/incognito window as a participant
+2. Submit test responses (these are flagged as test data)
+3. In the facilitator dashboard, switch to the **Test Responses** tab to see only your test submissions
+4. The **Results** tab always shows only real participant responses
+5. Click **Clear Test Responses** to remove test data before the live session
 
 ---
 
@@ -206,12 +228,14 @@ Position questions visually on a background image. The canvas editor appears on 
 
 | Issue | Solution |
 |-------|----------|
-| Can't sign in | Check email/password; try resetting via Supabase |
+| Can't sign in | Check email/password; use "Forgot password?" to reset |
+| Forgot password | Click "Forgot password?" on the login screen to receive a reset link |
 | Participants can't see polls | Ensure they entered the correct team PIN |
 | Results not updating | Enable "Live Results" toggle |
 | Participants can't submit | Check that voting is open |
 | Reset didn't work | Participants need to refresh their page after a reset |
+| Test Responses tab shows wrong data | Ensure you're using the Test Responses tab (not Results) to view test submissions |
 
 ---
 
-*SprintPulse v2.0.0*
+*SprintPulse v2.1.0*

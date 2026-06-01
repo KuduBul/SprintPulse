@@ -4,12 +4,12 @@ import { useState, FormEvent } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
 
 /**
- * Authentication form component with Login/Register toggle.
- * Handles email/password sign-in and sign-up with display name.
+ * Authentication form component with Login/Register/ForgotPassword modes.
+ * Handles email/password sign-in, sign-up with display name, and password reset.
  */
 export function AuthForm() {
-  const { signIn, signUp } = useAuth();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const { signIn, signUp, resetPassword } = useAuth();
+  const [mode, setMode] = useState<'login' | 'register' | 'forgotPassword'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -20,6 +20,7 @@ export function AuthForm() {
   const validateForm = (): string | null => {
     if (!email.trim()) return 'Email is required';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Invalid email format';
+    if (mode === 'forgotPassword') return null; // Only email needed for reset
     if (!password) return 'Password is required';
     if (password.length < 8) return 'Password must be at least 8 characters';
     if (mode === 'register' && !displayName.trim()) return 'Display name is required';
@@ -41,7 +42,14 @@ export function AuthForm() {
     setLoading(true);
 
     try {
-      if (mode === 'login') {
+      if (mode === 'forgotPassword') {
+        const { error: resetError } = await resetPassword(email);
+        if (resetError) {
+          setError(resetError.message);
+        } else {
+          setSuccessMessage('Password reset link sent! Check your email for instructions.');
+        }
+      } else if (mode === 'login') {
         const { error: authError } = await signIn(email, password);
         if (authError) {
           setError(authError.message);
@@ -87,52 +95,58 @@ export function AuthForm() {
           marginBottom: 'var(--space-6)',
         }}
       >
-        {mode === 'login' ? 'Sign in to manage your polls.' : 'Create an account to get started.'}
+        {mode === 'login'
+          ? 'Sign in to manage your polls.'
+          : mode === 'register'
+            ? 'Create an account to get started.'
+            : 'Enter your email to reset your password.'}
       </p>
 
-      {/* Mode Toggle */}
-      <div
-        style={{
-          display: 'flex',
-          marginBottom: 'var(--space-6)',
-          borderBottom: '2px solid var(--color-border-default)',
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => { setMode('login'); setError(null); setSuccessMessage(null); }}
+      {/* Mode Toggle - hidden in forgotPassword mode */}
+      {mode !== 'forgotPassword' && (
+        <div
           style={{
-            flex: 1,
-            padding: 'var(--space-3)',
-            border: 'none',
-            borderBottom: mode === 'login' ? '2px solid var(--color-primary-700)' : '2px solid transparent',
-            backgroundColor: 'transparent',
-            color: mode === 'login' ? 'var(--color-primary-700)' : 'var(--color-text-secondary)',
-            fontWeight: 'var(--font-weight-semibold)',
-            cursor: 'pointer',
-            marginBottom: '-2px',
+            display: 'flex',
+            marginBottom: 'var(--space-6)',
+            borderBottom: '2px solid var(--color-border-default)',
           }}
         >
-          Login
-        </button>
-        <button
-          type="button"
-          onClick={() => { setMode('register'); setError(null); setSuccessMessage(null); }}
-          style={{
-            flex: 1,
-            padding: 'var(--space-3)',
-            border: 'none',
-            borderBottom: mode === 'register' ? '2px solid var(--color-primary-700)' : '2px solid transparent',
-            backgroundColor: 'transparent',
-            color: mode === 'register' ? 'var(--color-primary-700)' : 'var(--color-text-secondary)',
-            fontWeight: 'var(--font-weight-semibold)',
-            cursor: 'pointer',
-            marginBottom: '-2px',
-          }}
-        >
-          Register
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => { setMode('login'); setError(null); setSuccessMessage(null); }}
+            style={{
+              flex: 1,
+              padding: 'var(--space-3)',
+              border: 'none',
+              borderBottom: mode === 'login' ? '2px solid var(--color-primary-700)' : '2px solid transparent',
+              backgroundColor: 'transparent',
+              color: mode === 'login' ? 'var(--color-primary-700)' : 'var(--color-text-secondary)',
+              fontWeight: 'var(--font-weight-semibold)',
+              cursor: 'pointer',
+              marginBottom: '-2px',
+            }}
+          >
+            Login
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMode('register'); setError(null); setSuccessMessage(null); }}
+            style={{
+              flex: 1,
+              padding: 'var(--space-3)',
+              border: 'none',
+              borderBottom: mode === 'register' ? '2px solid var(--color-primary-700)' : '2px solid transparent',
+              backgroundColor: 'transparent',
+              color: mode === 'register' ? 'var(--color-primary-700)' : 'var(--color-text-secondary)',
+              fontWeight: 'var(--font-weight-semibold)',
+              cursor: 'pointer',
+              marginBottom: '-2px',
+            }}
+          >
+            Register
+          </button>
+        </div>
+      )}
 
       {/* Error Display */}
       {error && (
@@ -232,35 +246,37 @@ export function AuthForm() {
           />
         </div>
 
-        {/* Password */}
-        <div style={{ marginBottom: 'var(--space-4)' }}>
-          <label
-            htmlFor="password-input"
-            style={{
-              display: 'block',
-              fontWeight: 'var(--font-weight-medium)',
-              marginBottom: 'var(--space-2)',
-            }}
-          >
-            Password
-          </label>
-          <input
-            id="password-input"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder={mode === 'register' ? 'At least 8 characters' : 'Enter password'}
-            required
-            minLength={8}
-            style={{
-              width: '100%',
-              padding: 'var(--space-3)',
-              border: '1px solid var(--color-border-strong)',
-              borderRadius: 'var(--radius-md)',
-              fontSize: 'var(--font-size-base)',
-            }}
-          />
-        </div>
+        {/* Password (login and register only) */}
+        {mode !== 'forgotPassword' && (
+          <div style={{ marginBottom: 'var(--space-4)' }}>
+            <label
+              htmlFor="password-input"
+              style={{
+                display: 'block',
+                fontWeight: 'var(--font-weight-medium)',
+                marginBottom: 'var(--space-2)',
+              }}
+            >
+              Password
+            </label>
+            <input
+              id="password-input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={mode === 'register' ? 'At least 8 characters' : 'Enter password'}
+              required
+              minLength={8}
+              style={{
+                width: '100%',
+                padding: 'var(--space-3)',
+                border: '1px solid var(--color-border-strong)',
+                borderRadius: 'var(--radius-md)',
+                fontSize: 'var(--font-size-base)',
+              }}
+            />
+          </div>
+        )}
 
         <button
           type="submit"
@@ -278,9 +294,57 @@ export function AuthForm() {
             opacity: loading ? 0.7 : 1,
           }}
         >
-          {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+          {loading
+            ? 'Please wait...'
+            : mode === 'login'
+              ? 'Sign In'
+              : mode === 'register'
+                ? 'Create Account'
+                : 'Send Reset Link'}
         </button>
       </form>
+
+      {/* Forgot password link - visible only in login mode */}
+      {mode === 'login' && (
+        <div style={{ marginTop: 'var(--space-4)', textAlign: 'center' }}>
+          <button
+            type="button"
+            onClick={() => { setMode('forgotPassword'); setError(null); setSuccessMessage(null); }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--color-primary-700)',
+              fontSize: 'var(--font-size-sm)',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: 0,
+            }}
+          >
+            Forgot password?
+          </button>
+        </div>
+      )}
+
+      {/* Back to Login link - visible only in forgotPassword mode */}
+      {mode === 'forgotPassword' && (
+        <div style={{ marginTop: 'var(--space-4)', textAlign: 'center' }}>
+          <button
+            type="button"
+            onClick={() => { setMode('login'); setError(null); setSuccessMessage(null); }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--color-primary-700)',
+              fontSize: 'var(--font-size-sm)',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: 0,
+            }}
+          >
+            Back to Login
+          </button>
+        </div>
+      )}
     </section>
   );
 }
