@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import { pollService, responseService, facilitatorService } from '@/lib/services';
 import { notFoundError, internalError } from '@/lib/api/errors';
 
+// Force dynamic rendering — this route hits the database and must never be
+// statically evaluated at build time.
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 /**
  * GET /api/polls/[id]/results/public — Get public results for a poll.
  * Respects the current facilitator state (reveal stage and anonymisation).
