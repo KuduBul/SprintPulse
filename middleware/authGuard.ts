@@ -38,6 +38,10 @@ export function withAuth(handler: AuthenticatedHandler) {
       );
     }
 
-    return handler(request, { userId: user.id, ...context });
+    // Next.js 15 makes route `params` a Promise. Resolve it here so handlers
+    // can continue to read `context.params` synchronously.
+    const params = context?.params ? await context.params : undefined;
+
+    return handler(request, { ...context, userId: user.id, params });
   };
 }

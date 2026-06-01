@@ -9,9 +9,9 @@ import { internalError } from '@/lib/api/errors';
  * Body: { sessionToken: string }
  * Returns: { submitted: boolean }
  */
-export async function POST(request: Request, context: { params: { id: string } }) {
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
     const body = await request.json();
     const sessionToken = body?.sessionToken;
 

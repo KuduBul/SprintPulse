@@ -12,9 +12,9 @@ export const runtime = 'nodejs';
  * Respects the current facilitator state (reveal stage and anonymisation).
  * No admin auth required.
  */
-export async function GET(request: Request, context: { params: { id: string } }) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
     const poll = await pollService.getPublicPoll(id);
 
     if (!poll) {

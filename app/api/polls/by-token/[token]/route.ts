@@ -22,7 +22,7 @@ export const runtime = 'nodejs';
  */
 export async function GET(_request: Request, context: any) {
   try {
-    const { token } = context.params;
+    const { token } = await context.params;
 
     // Validate token format (min 32 chars, URL-safe characters)
     const parseResult = AccessTokenParamSchema.safeParse({ token });
