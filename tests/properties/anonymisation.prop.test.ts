@@ -163,14 +163,19 @@ describe('Property 13: Anonymisation replaces all participant names', () => {
           // Ensure unique session tokens and unique names
           const seenTokens = new Set<string>();
           const seenNames = new Set<string>();
-          const uniqueParticipants = participants.filter((p) => {
-            const name = p.name.trim();
-            if (seenTokens.has(p.sessionToken)) return false;
-            if (seenNames.has(name)) return false;
-            seenTokens.add(p.sessionToken);
-            seenNames.add(name);
-            return true;
-          });
+          const uniqueParticipants = participants
+            .filter((p) => {
+              const name = p.name.trim();
+              if (seenTokens.has(p.sessionToken)) return false;
+              if (seenNames.has(name)) return false;
+              seenTokens.add(p.sessionToken);
+              seenNames.add(name);
+              return true;
+            })
+            // Make custom text unique per participant so the text-based matching
+            // below is unambiguous (two participants may otherwise generate
+            // identical free-text).
+            .map((p) => ({ ...p, text: `${p.sessionToken}::${p.text}` }));
           fc.pre(uniqueParticipants.length >= 2);
 
           store = createMockStore();
@@ -287,14 +292,19 @@ describe('Property 13: Anonymisation replaces all participant names', () => {
           // Ensure unique session tokens and names
           const seenTokens = new Set<string>();
           const seenNames = new Set<string>();
-          const uniqueParticipants = participants.filter((p) => {
-            const name = p.name.trim();
-            if (seenTokens.has(p.sessionToken)) return false;
-            if (seenNames.has(name)) return false;
-            seenTokens.add(p.sessionToken);
-            seenNames.add(name);
-            return true;
-          });
+          const uniqueParticipants = participants
+            .filter((p) => {
+              const name = p.name.trim();
+              if (seenTokens.has(p.sessionToken)) return false;
+              if (seenNames.has(name)) return false;
+              seenTokens.add(p.sessionToken);
+              seenNames.add(name);
+              return true;
+            })
+            // Make custom text unique per participant so the text-based matching
+            // below is unambiguous (two participants may otherwise generate
+            // identical free-text).
+            .map((p) => ({ ...p, text: `${p.sessionToken}::${p.text}` }));
           fc.pre(uniqueParticipants.length >= 2);
 
           store = createMockStore();

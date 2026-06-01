@@ -91,7 +91,13 @@ export function withRateLimit(
     recentTimestamps.push(now);
     requestStore.set(ip, recentTimestamps);
 
-    return handler(request, context);
+    // Next.js 15 makes route `params` a Promise. Resolve it here so wrapped
+    // handlers can continue to read `context.params` synchronously.
+    const resolvedContext = context?.params
+      ? { ...context, params: await context.params }
+      : context;
+
+    return handler(request, resolvedContext);
   };
 }
 

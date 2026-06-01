@@ -11,9 +11,9 @@ export const runtime = 'nodejs';
  * GET /api/polls/[id]/public — Get public poll data for participants.
  * No admin auth required. Respects soft-delete (returns 404 for deleted polls).
  */
-export async function GET(request: Request, context: { params: { id: string } }) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
     const poll = await pollService.getPublicPoll(id);
 
     if (!poll) {
