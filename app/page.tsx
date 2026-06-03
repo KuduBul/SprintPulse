@@ -171,6 +171,36 @@ export default function Home() {
         >
           Facilitators create and run polls. Participants join to vote.
         </p>
+        <div
+          style={{
+            marginTop: 'var(--space-4)',
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 'var(--space-4)',
+          }}
+        >
+          <Link
+            href="/help/facilitator"
+            style={{
+              fontSize: 'var(--font-size-sm)',
+              color: 'var(--color-primary-700)',
+              textDecoration: 'none',
+            }}
+          >
+            Facilitator Guide
+          </Link>
+          <span style={{ color: 'var(--color-text-muted)' }}>·</span>
+          <Link
+            href="/help/participant"
+            style={{
+              fontSize: 'var(--font-size-sm)',
+              color: 'var(--color-primary-700)',
+              textDecoration: 'none',
+            }}
+          >
+            Participant Guide
+          </Link>
+        </div>
       </div>
     </main>
   );

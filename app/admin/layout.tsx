@@ -103,6 +103,17 @@ export default function AdminLayout({
           >
             Profile
           </Link>
+          <Link
+            href="/help/facilitator"
+            style={{
+              color: 'var(--color-text-secondary)',
+              textDecoration: 'none',
+              fontWeight: 'var(--font-weight-medium)',
+              fontSize: 'var(--font-size-sm)',
+            }}
+          >
+            Help
+          </Link>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
           <span
