@@ -17,30 +17,32 @@ model Team {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  polls     Poll[]
+  polls Poll[]
 
   @@index([userId])
   @@index([pin])
 }
 
 model Poll {
-  id                 String     @id @default(uuid())
+  id                 String    @id @default(uuid())
   userId             String
-  title              String     @db.VarChar(200)
-  description        String?    @db.VarChar(1000)
+  title              String    @db.VarChar(200)
+  description        String?   @db.VarChar(1000)
   backgroundImageUrl String?
-  accessToken        String     @unique @db.VarChar(64)
+  accessToken        String    @unique @db.VarChar(64)
   tokenExpiresAt     DateTime?
-  facilitatorState   Json       @default("{\"_v\":1,\"votingOpen\":false,\"liveResults\":false,\"anonymise\":true,\"revealStage\":\"HIDDEN\"}")
-  isDeleted          Boolean    @default(false)
+  facilitatorState   Json      @default("{\"_v\":1,\"votingOpen\":false,\"liveResults\":false,\"anonymise\":true,\"revealStage\":\"HIDDEN\"}")
+  isDeleted          Boolean   @default(false)
   teamId             String?
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  type               String    @default("pulse") // "pulse" | "retro" — additive Phase 2 discriminator
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  team               Team?      @relation(fields: [teamId], references: [id])
-  questions          Question[]
-  responses          Response[]
-  auditLogs          AuditLog[]
+  team       Team?       @relation(fields: [teamId], references: [id])
+  questions  Question[]
+  responses  Response[]
+  auditLogs  AuditLog[]
+  retroBoard RetroBoard? // null for pulse polls
 
   @@index([userId])
   @@index([teamId])
@@ -48,18 +50,18 @@ model Poll {
 }
 
 model Question {
-  id           String     @id @default(uuid())
+  id           String   @id @default(uuid())
   pollId       String
-  text         String     @db.VarChar(500)
-  options      Json       // string[]
-  allowCustom  Boolean    @default(false)
-  position     Json?      // {x, y, width, height} | null
+  text         String   @db.VarChar(500)
+  options      Json // string[]
+  allowCustom  Boolean  @default(false)
+  position     Json? // {x, y, width, height} | null
   displayOrder Int
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  poll         Poll       @relation(fields: [pollId], references: [id])
-  responses    Response[]
+  poll      Poll       @relation(fields: [pollId], references: [id])
+  responses Response[]
 
   @@index([pollId])
 }
@@ -76,13 +78,13 @@ model Response {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  poll            Poll     @relation(fields: [pollId], references: [id])
-  question        Question @relation(fields: [questionId], references: [id])
+  poll     Poll     @relation(fields: [pollId], references: [id])
+  question Question @relation(fields: [questionId], references: [id])
 
+  @@unique([pollId, questionId, sessionToken])
   @@index([pollId])
   @@index([questionId])
   @@index([sessionToken])
-  @@unique([pollId, questionId, sessionToken])
 }
 
 model AuditLog {
@@ -93,8 +95,91 @@ model AuditLog {
   metadata  Json?
   createdAt DateTime @default(now())
 
-  poll      Poll?    @relation(fields: [pollId], references: [id])
+  poll Poll? @relation(fields: [pollId], references: [id])
 
   @@index([pollId])
   @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Retro Board (Phase 2A) — additive models. See .kiro/specs/retro-board-phase-2.
+// ---------------------------------------------------------------------------
+
+model RetroBoard {
+  id           String   @id @default(uuid())
+  pollId       String   @unique // 1:1 with the Poll shell
+  template     String // "start_stop_continue" | "4ls" | "mad_sad_glad" | "custom"
+  phase        String   @default("gather") // "gather" | "vote" | "closed"
+  votesPerUser Int      @default(3) // cap enforced during vote phase
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  poll  Poll        @relation(fields: [pollId], references: [id])
+  lanes RetroLane[]
+  cards RetroCard[]
+  votes RetroVote[]
+
+  @@index([pollId])
+}
+
+model RetroLane {
+  id           String @id @default(uuid())
+  boardId      String
+  title        String @db.VarChar(100)
+  displayOrder Int
+  // Percentage-based position for the desktop board; null => simple column layout.
+  position     Json? // { x, y, width, height } | null
+
+  board RetroBoard  @relation(fields: [boardId], references: [id])
+  cards RetroCard[]
+
+  @@index([boardId])
+}
+
+model RetroCard {
+  id          String   @id @default(uuid())
+  boardId     String
+  laneId      String
+  // Author identity: persistent per-session participant token.
+  authorToken String
+  authorName  String   @db.VarChar(50)
+  text        String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  board RetroBoard  @relation(fields: [boardId], references: [id])
+  lane  RetroLane   @relation(fields: [laneId], references: [id])
+  votes RetroVote[]
+
+  @@index([boardId])
+  @@index([laneId])
+  @@index([authorToken])
+}
+
+model RetroVote {
+  id         String   @id @default(uuid())
+  boardId    String
+  cardId     String
+  voterToken String // same persistent participant token
+  createdAt  DateTime @default(now())
+
+  board RetroBoard @relation(fields: [boardId], references: [id])
+  card  RetroCard  @relation(fields: [cardId], references: [id])
+
+  // One vote per card per voter; total per voter capped in service logic.
+  @@unique([cardId, voterToken])
+  @@index([boardId])
+  @@index([voterToken])
+}
+
+// Defined now for schema stability; populated in Phase 2B.
+model RetroActionItem {
+  id        String    @id @default(uuid())
+  boardId   String
+  text      String    @db.Text
+  owner     String?   @db.VarChar(100)
+  dueDate   DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([boardId])
 }

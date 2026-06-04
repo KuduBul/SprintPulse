@@ -20,7 +20,7 @@ This plan implements Phase 2A of the Retro Board on the `phase-2-retro` branch, 
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
 - [ ] 2. Add the data model (additive migration + retro tables)
-  - [~] 2.1 Add Poll.type discriminator and new retro tables to the Prisma schema
+  - [x] 2.1 Add Poll.type discriminator and new retro tables to the Prisma schema
     - Add type String @default("pulse") to the Poll model and the retroBoard relation
     - Add RetroBoard, RetroLane, RetroCard, RetroVote, and RetroActionItem models per design.md
     - Include the @@unique([cardId, voterToken]) constraint on RetroVote
