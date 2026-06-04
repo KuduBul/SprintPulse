@@ -122,6 +122,9 @@ const MAX_LANES = 8;
 /** Maximum lane title length (Requirement 3.5). */
 const MAX_LANE_TITLE_LENGTH = 100;
 
+/** Maximum card text length after trimming (Requirement 5.2). */
+const MAX_CARD_TEXT_LENGTH = 2000;
+
 /**
  * Built-in template → ordered lane titles (Requirement 3.1, 3.2).
  * Keyed by string so an unrecognised template is caught at runtime.
@@ -202,6 +205,25 @@ function resolveVotesPerUser(override?: number): number {
     throw retroError('votesPerUser must be a positive integer', 'VALIDATION_ERROR');
   }
   return override;
+}
+
+/**
+ * Validates and normalises card text: trims surrounding whitespace, rejects
+ * empty text, and rejects text longer than 2000 characters after trimming
+ * (Requirement 5.2). Returns the trimmed text ready to persist.
+ */
+function validateCardText(raw: string): string {
+  const text = (raw ?? '').trim();
+  if (text.length < 1) {
+    throw retroError('Card text must not be empty', 'VALIDATION_ERROR');
+  }
+  if (text.length > MAX_CARD_TEXT_LENGTH) {
+    throw retroError(
+      `Card text must be at most ${MAX_CARD_TEXT_LENGTH} characters`,
+      'VALIDATION_ERROR',
+    );
+  }
+  return text;
 }
 
 /**
@@ -334,22 +356,93 @@ export function createRetroService(): RetroService {
     // tasks 4.2–4.4. They are declared here so the full RetroService interface
     // is available to dependents; calling them now throws a clear error.
 
-    async addCard(): Promise<RetroCard> {
-      throw retroError('retroService.addCard is not implemented yet', 'NOT_IMPLEMENTED');
+    /**
+     * Adds a card to a lane during the gather phase. Only permitted while the
+     * board's phase is "gather"; the text is trimmed and validated (non-empty,
+     * at most 2000 characters) before any write. Returns the created card.
+     * (Requirements 5.1, 5.2, 5.6)
+     */
+    async addCard(boardId: string, input: AddCardInput): Promise<RetroCard> {
+      const text = validateCardText(input.text);
+
+      const board = await prisma.retroBoard.findUnique({ where: { id: boardId } });
+      if (!board) {
+        throw retroError('Retro board not found', 'NOT_FOUND');
+      }
+      if ((board.phase as RetroPhase) !== 'gather') {
+        throw retroError('Cards can only be added during the gather phase', 'WRONG_PHASE');
+      }
+
+      return prisma.retroCard.create({
+        data: {
+          boardId,
+          laneId: input.laneId,
+          authorToken: input.authorToken,
+          authorName: input.authorName,
+          text,
+        },
+      });
     },
 
-    async editCard(): Promise<RetroCard> {
-      throw retroError('retroService.editCard is not implemented yet', 'NOT_IMPLEMENTED');
+    /**
+     * Edits a card's text. Only permitted while the board's phase is "gather"
+     * and only by the card's author (matching authorToken). The new text is
+     * trimmed and validated before the update. Returns the updated card.
+     * (Requirements 5.2, 5.3, 5.4, 5.6)
+     */
+    async editCard(cardId: string, authorToken: string, text: string): Promise<RetroCard> {
+      const validated = validateCardText(text);
+
+      const card = await prisma.retroCard.findUnique({ where: { id: cardId } });
+      if (!card) {
+        throw retroError('Retro card not found', 'NOT_FOUND');
+      }
+
+      const board = await prisma.retroBoard.findUnique({ where: { id: card.boardId } });
+      if (!board) {
+        throw retroError('Retro board not found', 'NOT_FOUND');
+      }
+      if ((board.phase as RetroPhase) !== 'gather') {
+        throw retroError('Cards can only be edited during the gather phase', 'WRONG_PHASE');
+      }
+      if (card.authorToken !== authorToken) {
+        throw retroError('Only the card author may edit this card', 'NOT_CARD_OWNER');
+      }
+
+      return prisma.retroCard.update({
+        where: { id: cardId },
+        data: { text: validated },
+      });
     },
 
-    async deleteCard(): Promise<void> {
-      throw retroError('retroService.deleteCard is not implemented yet', 'NOT_IMPLEMENTED');
+    /**
+     * Deletes a card. Only permitted while the board's phase is "gather" and
+     * only by the card's author (matching authorToken). A rejected delete leaves
+     * the card in place. (Requirements 5.3, 5.4, 5.6)
+     */
+    async deleteCard(cardId: string, authorToken: string): Promise<void> {
+      const card = await prisma.retroCard.findUnique({ where: { id: cardId } });
+      if (!card) {
+        throw retroError('Retro card not found', 'NOT_FOUND');
+      }
+
+      const board = await prisma.retroBoard.findUnique({ where: { id: card.boardId } });
+      if (!board) {
+        throw retroError('Retro board not found', 'NOT_FOUND');
+      }
+      if ((board.phase as RetroPhase) !== 'gather') {
+        throw retroError('Cards can only be deleted during the gather phase', 'WRONG_PHASE');
+      }
+      if (card.authorToken !== authorToken) {
+        throw retroError('Only the card author may delete this card', 'NOT_CARD_OWNER');
+      }
+
+      await prisma.retroCard.delete({ where: { id: cardId } });
     },
 
     async castVote(): Promise<void> {
       throw retroError('retroService.castVote is not implemented yet', 'NOT_IMPLEMENTED');
     },
-
     async removeVote(): Promise<void> {
       throw retroError('retroService.removeVote is not implemented yet', 'NOT_IMPLEMENTED');
     },

@@ -14,6 +14,10 @@ const mockPrisma = vi.hoisted(() => ({
   },
   retroCard: {
     findMany: vi.fn(),
+    findUnique: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
   },
   retroVote: {
     findMany: vi.fn(),
@@ -195,5 +199,168 @@ describe('RetroService.createBoard', () => {
     await expect(
       retroService.createBoard(POLL_ID, { template: 'start_stop_continue', votesPerUser: 0 }),
     ).rejects.toThrow(/positive integer/i);
+  });
+});
+
+describe('RetroService card capture (addCard / editCard / deleteCard)', () => {
+  let retroService: ReturnType<typeof createRetroService>;
+  const BOARD_ID = 'board-1';
+  const LANE_ID = 'lane-1';
+  const OWNER_TOKEN = 'owner-token';
+  const OTHER_TOKEN = 'other-token';
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    retroService = createRetroService();
+  });
+
+  function gatherBoard(overrides: Record<string, unknown> = {}) {
+    return { id: BOARD_ID, pollId: 'poll-1', template: 'start_stop_continue', phase: 'gather', votesPerUser: 3, ...overrides };
+  }
+
+  function ownedCard(overrides: Record<string, unknown> = {}) {
+    return { id: 'card-1', boardId: BOARD_ID, laneId: LANE_ID, authorToken: OWNER_TOKEN, authorName: 'Owner', text: 'original', ...overrides };
+  }
+
+  // ── addCard ───────────────────────────────────────────────────────────────
+
+  it('addCard creates a card with trimmed text during the gather phase', async () => {
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(gatherBoard());
+    mockPrisma.retroCard.create.mockImplementation((args: any) => ({ id: 'card-1', ...args.data }));
+
+    const card = await retroService.addCard(BOARD_ID, {
+      laneId: LANE_ID,
+      authorToken: OWNER_TOKEN,
+      authorName: 'Owner',
+      text: '  hello world  ',
+    });
+
+    expect(card.text).toBe('hello world');
+    expect(mockPrisma.retroCard.create).toHaveBeenCalledWith({
+      data: { boardId: BOARD_ID, laneId: LANE_ID, authorToken: OWNER_TOKEN, authorName: 'Owner', text: 'hello world' },
+    });
+  });
+
+  it('addCard rejects when the board is not in the gather phase', async () => {
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(gatherBoard({ phase: 'vote' }));
+
+    await expect(
+      retroService.addCard(BOARD_ID, { laneId: LANE_ID, authorToken: OWNER_TOKEN, authorName: 'Owner', text: 'hi' }),
+    ).rejects.toMatchObject({ code: 'WRONG_PHASE' });
+    expect(mockPrisma.retroCard.create).not.toHaveBeenCalled();
+  });
+
+  it('addCard rejects empty text after trimming', async () => {
+    await expect(
+      retroService.addCard(BOARD_ID, { laneId: LANE_ID, authorToken: OWNER_TOKEN, authorName: 'Owner', text: '   ' }),
+    ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+    expect(mockPrisma.retroBoard.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('addCard rejects text longer than 2000 characters after trimming', async () => {
+    await expect(
+      retroService.addCard(BOARD_ID, { laneId: LANE_ID, authorToken: OWNER_TOKEN, authorName: 'Owner', text: 'a'.repeat(2001) }),
+    ).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+  });
+
+  it('addCard accepts text of exactly 2000 characters', async () => {
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(gatherBoard());
+    mockPrisma.retroCard.create.mockImplementation((args: any) => ({ id: 'card-1', ...args.data }));
+
+    const card = await retroService.addCard(BOARD_ID, {
+      laneId: LANE_ID,
+      authorToken: OWNER_TOKEN,
+      authorName: 'Owner',
+      text: 'a'.repeat(2000),
+    });
+
+    expect(card.text).toHaveLength(2000);
+  });
+
+  it('addCard rejects when the board does not exist', async () => {
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(null);
+
+    await expect(
+      retroService.addCard(BOARD_ID, { laneId: LANE_ID, authorToken: OWNER_TOKEN, authorName: 'Owner', text: 'hi' }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+  });
+
+  // ── editCard ──────────────────────────────────────────────────────────────
+
+  it('editCard updates the card text for the author during gather', async () => {
+    mockPrisma.retroCard.findUnique.mockResolvedValue(ownedCard());
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(gatherBoard());
+    mockPrisma.retroCard.update.mockImplementation((args: any) => ({ ...ownedCard(), ...args.data }));
+
+    const card = await retroService.editCard('card-1', OWNER_TOKEN, '  updated  ');
+
+    expect(card.text).toBe('updated');
+    expect(mockPrisma.retroCard.update).toHaveBeenCalledWith({ where: { id: 'card-1' }, data: { text: 'updated' } });
+  });
+
+  it('editCard rejects when the requester is not the author', async () => {
+    mockPrisma.retroCard.findUnique.mockResolvedValue(ownedCard());
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(gatherBoard());
+
+    await expect(retroService.editCard('card-1', OTHER_TOKEN, 'updated')).rejects.toMatchObject({
+      code: 'NOT_CARD_OWNER',
+    });
+    expect(mockPrisma.retroCard.update).not.toHaveBeenCalled();
+  });
+
+  it('editCard rejects when the board is not in the gather phase', async () => {
+    mockPrisma.retroCard.findUnique.mockResolvedValue(ownedCard());
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(gatherBoard({ phase: 'closed' }));
+
+    await expect(retroService.editCard('card-1', OWNER_TOKEN, 'updated')).rejects.toMatchObject({
+      code: 'WRONG_PHASE',
+    });
+    expect(mockPrisma.retroCard.update).not.toHaveBeenCalled();
+  });
+
+  it('editCard rejects invalid (empty) text', async () => {
+    await expect(retroService.editCard('card-1', OWNER_TOKEN, '   ')).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+    });
+  });
+
+  // ── deleteCard ──────────────────────────────────────────────────────────────
+
+  it('deleteCard removes the card for the author during gather', async () => {
+    mockPrisma.retroCard.findUnique.mockResolvedValue(ownedCard());
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(gatherBoard());
+    mockPrisma.retroCard.delete.mockResolvedValue(ownedCard());
+
+    await retroService.deleteCard('card-1', OWNER_TOKEN);
+
+    expect(mockPrisma.retroCard.delete).toHaveBeenCalledWith({ where: { id: 'card-1' } });
+  });
+
+  it('deleteCard rejects and does not delete when the requester is not the author', async () => {
+    mockPrisma.retroCard.findUnique.mockResolvedValue(ownedCard());
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(gatherBoard());
+
+    await expect(retroService.deleteCard('card-1', OTHER_TOKEN)).rejects.toMatchObject({
+      code: 'NOT_CARD_OWNER',
+    });
+    expect(mockPrisma.retroCard.delete).not.toHaveBeenCalled();
+  });
+
+  it('deleteCard rejects when the board is not in the gather phase', async () => {
+    mockPrisma.retroCard.findUnique.mockResolvedValue(ownedCard());
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(gatherBoard({ phase: 'vote' }));
+
+    await expect(retroService.deleteCard('card-1', OWNER_TOKEN)).rejects.toMatchObject({
+      code: 'WRONG_PHASE',
+    });
+    expect(mockPrisma.retroCard.delete).not.toHaveBeenCalled();
+  });
+
+  it('deleteCard rejects when the card does not exist', async () => {
+    mockPrisma.retroCard.findUnique.mockResolvedValue(null);
+
+    await expect(retroService.deleteCard('missing', OWNER_TOKEN)).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
   });
 });

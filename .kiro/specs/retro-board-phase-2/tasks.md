@@ -48,7 +48,7 @@ This plan implements Phase 2A of the Retro Board on the `phase-2-retro` branch, 
     - Built-in templates: start_stop_continue, 4ls, mad_sad_glad, custom; enforce 1-8 lanes, titles <=100 chars
     - Set initial phase "gather" and a default votesPerUser cap
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
-  - [~] 4.2 Implement card capture with phase and ownership rules
+  - [x] 4.2 Implement card capture with phase and ownership rules
     - addCard (gather only, non-empty text <=2000 chars after trim)
     - editCard and deleteCard (own card only, gather only)
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.6_
