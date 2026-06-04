@@ -43,7 +43,7 @@ This plan implements Phase 2A of the Retro Board on the `phase-2-retro` branch, 
     - _Requirements: 5.1, 5.3, 5.4, 5.6, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.6, 8.3_
 
 - [ ] 4. Implement the retro service (domain engine)
-  - [~] 4.1 Implement board and lane creation with templates
+  - [x] 4.1 Implement board and lane creation with templates
     - Create lib/services/retroService.ts with createBoard and template-to-lanes expansion
     - Built-in templates: start_stop_continue, 4ls, mad_sad_glad, custom; enforce 1-8 lanes, titles <=100 chars
     - Set initial phase "gather" and a default votesPerUser cap
