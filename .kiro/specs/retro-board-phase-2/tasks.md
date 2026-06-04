@@ -6,14 +6,14 @@ This plan implements Phase 2A of the Retro Board on the `phase-2-retro` branch, 
 
 ## Tasks
 
-- [ ] 1. Establish production isolation (feature flag + guards)
+- [x] 1. Establish production isolation (feature flag + guards)
   - [x] 1.1 Add the feature flag module and gate server + client entry points
     - Create lib/featureFlags.ts exporting RETRO_ENABLED = process.env.NEXT_PUBLIC_RETRO_ENABLED === 'true'
     - Add NEXT_PUBLIC_RETRO_ENABLED=true to .env.local for local development only (never to production env)
     - Create a server guard helper that returns HTTP 404 when RETRO_ENABLED is false, for use by all retro routes
     - Create a client helper/hook to conditionally render retro UI based on the flag
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
-  - [~] 1.2 Write tests for flag gating behavior
+  - [x] 1.2 Write tests for flag gating behavior
     - Test: when flag is false, the server guard yields 404 and retro UI does not render
     - Test: when flag is true, retro entry points render and routes are reachable
     - Test: production-like env (flag unset) is treated as false
