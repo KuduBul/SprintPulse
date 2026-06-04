@@ -21,6 +21,10 @@ const mockPrisma = vi.hoisted(() => ({
   },
   retroVote: {
     findMany: vi.fn(),
+    findFirst: vi.fn(),
+    count: vi.fn(),
+    create: vi.fn(),
+    deleteMany: vi.fn(),
   },
 }));
 
@@ -362,5 +366,117 @@ describe('RetroService card capture (addCard / editCard / deleteCard)', () => {
     await expect(retroService.deleteCard('missing', OWNER_TOKEN)).rejects.toMatchObject({
       code: 'NOT_FOUND',
     });
+  });
+});
+
+describe('RetroService voting (castVote / removeVote)', () => {
+  let retroService: ReturnType<typeof createRetroService>;
+  const BOARD_ID = 'board-1';
+  const CARD_ID = 'card-1';
+  const VOTER_TOKEN = 'voter-token';
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    retroService = createRetroService();
+
+    // $transaction runs the callback with the mocked prisma client acting as tx.
+    mockPrisma.$transaction.mockImplementation(async (fn: any) => fn(mockPrisma));
+  });
+
+  function voteBoard(overrides: Record<string, unknown> = {}) {
+    return { id: BOARD_ID, pollId: 'poll-1', template: 'start_stop_continue', phase: 'vote', votesPerUser: 3, ...overrides };
+  }
+
+  // ── castVote ────────────────────────────────────────────────────────────────
+
+  it('castVote creates a vote during the vote phase when under the cap', async () => {
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(voteBoard());
+    mockPrisma.retroVote.findFirst.mockResolvedValue(null);
+    mockPrisma.retroVote.count.mockResolvedValue(0);
+    mockPrisma.retroVote.create.mockResolvedValue({ id: 'vote-1', boardId: BOARD_ID, cardId: CARD_ID, voterToken: VOTER_TOKEN });
+
+    await retroService.castVote(BOARD_ID, CARD_ID, VOTER_TOKEN);
+
+    expect(mockPrisma.retroVote.create).toHaveBeenCalledWith({
+      data: { boardId: BOARD_ID, cardId: CARD_ID, voterToken: VOTER_TOKEN },
+    });
+  });
+
+  it('castVote rejects when the board is not in the vote phase', async () => {
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(voteBoard({ phase: 'gather' }));
+
+    await expect(retroService.castVote(BOARD_ID, CARD_ID, VOTER_TOKEN)).rejects.toMatchObject({
+      code: 'WRONG_PHASE',
+    });
+    expect(mockPrisma.retroVote.create).not.toHaveBeenCalled();
+  });
+
+  it('castVote rejects a new-card vote when the voter is already at the cap', async () => {
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(voteBoard({ votesPerUser: 3 }));
+    mockPrisma.retroVote.findFirst.mockResolvedValue(null);
+    mockPrisma.retroVote.count.mockResolvedValue(3);
+
+    await expect(retroService.castVote(BOARD_ID, CARD_ID, VOTER_TOKEN)).rejects.toMatchObject({
+      code: 'VOTE_CAP_EXCEEDED',
+    });
+    expect(mockPrisma.retroVote.create).not.toHaveBeenCalled();
+  });
+
+  it('castVote is a no-op when the voter has already voted on the card (no duplicate, no cap consumption)', async () => {
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(voteBoard());
+    mockPrisma.retroVote.findFirst.mockResolvedValue({ id: 'vote-1', boardId: BOARD_ID, cardId: CARD_ID, voterToken: VOTER_TOKEN });
+
+    await retroService.castVote(BOARD_ID, CARD_ID, VOTER_TOKEN);
+
+    expect(mockPrisma.retroVote.count).not.toHaveBeenCalled();
+    expect(mockPrisma.retroVote.create).not.toHaveBeenCalled();
+  });
+
+  it('castVote treats a concurrent unique-constraint violation (P2002) as a no-op', async () => {
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(voteBoard());
+    mockPrisma.retroVote.findFirst.mockResolvedValue(null);
+    mockPrisma.retroVote.count.mockResolvedValue(0);
+    const p2002: any = new Error('Unique constraint failed');
+    p2002.code = 'P2002';
+    mockPrisma.retroVote.create.mockRejectedValue(p2002);
+
+    await expect(retroService.castVote(BOARD_ID, CARD_ID, VOTER_TOKEN)).resolves.toBeUndefined();
+  });
+
+  it('castVote rejects when the board does not exist', async () => {
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(null);
+
+    await expect(retroService.castVote(BOARD_ID, CARD_ID, VOTER_TOKEN)).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
+  });
+
+  // ── removeVote ────────────────────────────────────────────────────────────────
+
+  it('removeVote deletes the voter vote on a card during the vote phase', async () => {
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(voteBoard());
+    mockPrisma.retroVote.deleteMany.mockResolvedValue({ count: 1 });
+
+    await retroService.removeVote(BOARD_ID, CARD_ID, VOTER_TOKEN);
+
+    expect(mockPrisma.retroVote.deleteMany).toHaveBeenCalledWith({
+      where: { cardId: CARD_ID, voterToken: VOTER_TOKEN },
+    });
+  });
+
+  it('removeVote is a no-op when no vote is present', async () => {
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(voteBoard());
+    mockPrisma.retroVote.deleteMany.mockResolvedValue({ count: 0 });
+
+    await expect(retroService.removeVote(BOARD_ID, CARD_ID, VOTER_TOKEN)).resolves.toBeUndefined();
+  });
+
+  it('removeVote rejects when the board is not in the vote phase', async () => {
+    mockPrisma.retroBoard.findUnique.mockResolvedValue(voteBoard({ phase: 'closed' }));
+
+    await expect(retroService.removeVote(BOARD_ID, CARD_ID, VOTER_TOKEN)).rejects.toMatchObject({
+      code: 'WRONG_PHASE',
+    });
+    expect(mockPrisma.retroVote.deleteMany).not.toHaveBeenCalled();
   });
 });

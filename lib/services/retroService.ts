@@ -440,11 +440,74 @@ export function createRetroService(): RetroService {
       await prisma.retroCard.delete({ where: { id: cardId } });
     },
 
-    async castVote(): Promise<void> {
-      throw retroError('retroService.castVote is not implemented yet', 'NOT_IMPLEMENTED');
+    /**
+     * Casts a vote for a card during the vote phase. Enforces two invariants
+     * server-side:
+     *
+     *  - One vote per card per voter (Requirement 7.3): if the voter already
+     *    has a vote on this card, the call is a no-op — it neither creates a
+     *    duplicate row nor counts against the cap. The read-check-write runs in
+     *    a transaction and additionally catches the `@@unique([cardId,
+     *    voterToken])` violation (P2002) as a no-op, so a duplicate can never
+     *    create a second row even under concurrency.
+     *  - Per-user total cap (Requirement 7.2): a voter may not hold more than
+     *    the board's `votesPerUser` votes. A NEW-card vote that would exceed the
+     *    cap is rejected with `VOTE_CAP_EXCEEDED`; a repeated vote on an
+     *    already-voted card is never blocked by the cap because it is a no-op.
+     *
+     * Only permitted while the board's phase is "vote" (Requirements 7.1, 7.4).
+     */
+    async castVote(boardId: string, cardId: string, voterToken: string): Promise<void> {
+      const board = await prisma.retroBoard.findUnique({ where: { id: boardId } });
+      if (!board) {
+        throw retroError('Retro board not found', 'NOT_FOUND');
+      }
+      if ((board.phase as RetroPhase) !== 'vote') {
+        throw retroError('Votes can only be cast during the vote phase', 'WRONG_PHASE');
+      }
+
+      await prisma.$transaction(async (tx: PrismaTransactionClient) => {
+        // Uniqueness: an existing vote on this card by this voter is a no-op,
+        // so it neither duplicates a row nor consumes another cap slot.
+        const existing = await tx.retroVote.findFirst({ where: { cardId, voterToken } });
+        if (existing) {
+          return;
+        }
+
+        // Cap: count the voter's existing (distinct-card) votes on this board.
+        const voteCount = await tx.retroVote.count({ where: { boardId, voterToken } });
+        if (voteCount >= board.votesPerUser) {
+          throw retroError('Vote cap exceeded for this voter', 'VOTE_CAP_EXCEEDED');
+        }
+
+        try {
+          await tx.retroVote.create({ data: { boardId, cardId, voterToken } });
+        } catch (error) {
+          // Defensive: a concurrent duplicate trips the unique constraint.
+          // Treat it as a handled no-op so a second row can never be written.
+          if ((error as { code?: string }).code === 'P2002') {
+            return;
+          }
+          throw error;
+        }
+      });
     },
-    async removeVote(): Promise<void> {
-      throw retroError('retroService.removeVote is not implemented yet', 'NOT_IMPLEMENTED');
+
+    /**
+     * Removes the voter's vote on a card during the vote phase. Only permitted
+     * while the board's phase is "vote" (Requirements 7.1, 7.4); deleting an
+     * absent vote is a no-op.
+     */
+    async removeVote(boardId: string, cardId: string, voterToken: string): Promise<void> {
+      const board = await prisma.retroBoard.findUnique({ where: { id: boardId } });
+      if (!board) {
+        throw retroError('Retro board not found', 'NOT_FOUND');
+      }
+      if ((board.phase as RetroPhase) !== 'vote') {
+        throw retroError('Votes can only be removed during the vote phase', 'WRONG_PHASE');
+      }
+
+      await prisma.retroVote.deleteMany({ where: { cardId, voterToken } });
     },
 
     async setPhase(): Promise<RetroBoard> {

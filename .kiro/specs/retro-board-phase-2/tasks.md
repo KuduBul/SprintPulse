@@ -52,7 +52,7 @@ This plan implements Phase 2A of the Retro Board on the `phase-2-retro` branch, 
     - addCard (gather only, non-empty text <=2000 chars after trim)
     - editCard and deleteCard (own card only, gather only)
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.6_
-  - [~] 4.3 Implement voting with cap and uniqueness enforcement
+  - [x] 4.3 Implement voting with cap and uniqueness enforcement
     - castVote and removeVote (vote phase only); enforce per-card uniqueness and per-user total cap server-side
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
   - [~] 4.4 Implement phase control and anonymity-aware board view
