@@ -19,14 +19,14 @@ This plan implements Phase 2A of the Retro Board on the `phase-2-retro` branch, 
     - Test: production-like env (flag unset) is treated as false
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-- [ ] 2. Add the data model (additive migration + retro tables)
+- [x] 2. Add the data model (additive migration + retro tables)
   - [x] 2.1 Add Poll.type discriminator and new retro tables to the Prisma schema
     - Add type String @default("pulse") to the Poll model and the retroBoard relation
     - Add RetroBoard, RetroLane, RetroCard, RetroVote, and RetroActionItem models per design.md
     - Include the @@unique([cardId, voterToken]) constraint on RetroVote
     - Generate and apply the migration locally; confirm existing pulse rows default to type "pulse"
     - _Requirements: 2.3, 2.4, 2.5, 5.2, 7.3, 11.1, 11.2_
-  - [~] 2.2 Write migration preservation tests
+  - [x] 2.2 Write migration preservation tests
     - Test: existing Poll rows read back with type "pulse" after migration
     - Test: Question and Response tables are structurally unchanged
     - _Requirements: 11.1, 11.2, 11.3_
