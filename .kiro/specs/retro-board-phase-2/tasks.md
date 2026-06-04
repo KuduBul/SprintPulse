@@ -31,8 +31,8 @@ This plan implements Phase 2A of the Retro Board on the `phase-2-retro` branch, 
     - Test: Question and Response tables are structurally unchanged
     - _Requirements: 11.1, 11.2, 11.3_
 
-- [ ] 3. Write property-based tests for retro correctness properties (BEFORE service implementation)
-  - [~] 3.1 Write PBT for the retro state machine and invariants
+- [x] 3. Write property-based tests for retro correctness properties (BEFORE service implementation)
+  - [x] 3.1 Write PBT for the retro state machine and invariants
     - Property 1 (vote cap): no voterToken ever exceeds the board votesPerUser cap (Design Property 1)
     - Property 2 (one-vote-per-card): at most one RetroVote per (cardId, voterToken) (Design Property 2)
     - Property 3 (phase gates): add-card only in gather; vote only in vote; no participant mutation in closed (Design Property 3)
