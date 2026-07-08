@@ -73,6 +73,9 @@ function useOptimisticBoard(serverBoard: BoardView) {
   const prevBoardRef = useRef<string>('');
 
   // Reset optimistic state when server data changes (next poll cycle).
+  // Keep optimistically-added cards until the server response reflects them,
+  // to avoid flicker when read-after-write lag through PgBouncer means the
+  // GET fires before the INSERT is visible on the read connection.
   const boardFingerprint = JSON.stringify({
     id: serverBoard.id,
     phase: serverBoard.phase,
@@ -81,7 +84,6 @@ function useOptimisticBoard(serverBoard: BoardView) {
 
   if (boardFingerprint !== prevBoardRef.current) {
     prevBoardRef.current = boardFingerprint;
-    // Clear optimistic state — server is now the source of truth.
     if (
       optimistic.addedCards.size > 0 ||
       optimistic.deletedCardIds.size > 0 ||
@@ -89,7 +91,40 @@ function useOptimisticBoard(serverBoard: BoardView) {
       optimistic.votedCardIds.size > 0 ||
       optimistic.unvotedCardIds.size > 0
     ) {
-      setOptimistic(emptyOptimisticState());
+      // For everything except addedCards, clear immediately on fingerprint change.
+      // For addedCards, clear only if the server response already includes them
+      // (detected by checking if the server's total visible card count grew).
+      // This prevents clearing an optimistic card that the server hasn't seen yet.
+      const hasNonAddOptimistic =
+        optimistic.deletedCardIds.size > 0 ||
+        optimistic.editedCards.size > 0 ||
+        optimistic.votedCardIds.size > 0 ||
+        optimistic.unvotedCardIds.size > 0;
+
+      if (hasNonAddOptimistic && optimistic.addedCards.size === 0) {
+        setOptimistic(emptyOptimisticState());
+      } else if (optimistic.addedCards.size > 0) {
+        // Check if the server now includes the cards we added optimistically
+        // by comparing text content. If a match is found, the card propagated.
+        const serverCardTexts = new Set(
+          serverBoard.lanes.flatMap((l) => l.cards.map((c) => c.text))
+        );
+        const allOptimisticConfirmed = [...optimistic.addedCards.values()].every(
+          (oc) => serverCardTexts.has(oc.text)
+        );
+        if (allOptimisticConfirmed) {
+          setOptimistic(emptyOptimisticState());
+        } else if (hasNonAddOptimistic) {
+          // Clear non-add optimistic state but keep addedCards that aren't confirmed
+          setOptimistic((prev) => ({
+            ...emptyOptimisticState(),
+            addedCards: prev.addedCards,
+          }));
+        }
+        // else: keep all optimistic state (cards not confirmed by server yet)
+      } else {
+        setOptimistic(emptyOptimisticState());
+      }
     }
   }
 

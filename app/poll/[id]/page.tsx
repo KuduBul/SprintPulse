@@ -512,11 +512,17 @@ function RetroParticipantView({ pollId, title, backgroundImageUrl }: { pollId: s
           boardTitle={title}
           participantPollId={pollId}
           onMutate={() => {
-            const participant = getParticipant(pollId);
-            const token = participant?.token ?? '';
-            fetch(`/api/retro/by-poll/${pollId}?role=participant&participantToken=${token}`)
-              .then(r => r.ok ? r.json() : null)
-              .then(data => { if (data) setBoard(data); });
+            // Small delay to allow the write to propagate through PgBouncer's
+            // connection pool before reading back. Without this, the GET may hit
+            // a different backend connection that hasn't seen the INSERT yet,
+            // returning stale data that clears the optimistic card.
+            setTimeout(() => {
+              const participant = getParticipant(pollId);
+              const token = participant?.token ?? '';
+              fetch(`/api/retro/by-poll/${pollId}?role=participant&participantToken=${token}`)
+                .then(r => r.ok ? r.json() : null)
+                .then(data => { if (data) setBoard(data); });
+            }, 500);
           }}
         />
       </div>
