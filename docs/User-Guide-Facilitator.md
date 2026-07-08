@@ -2,7 +2,7 @@
 
 ## Overview
 
-As a facilitator, you create teams, manage polls, control live sessions, and view results. This guide covers everything you need to run engaging workshops, retrospectives, and PI events using SprintPulse.
+As a facilitator, you create teams, manage polls and retros, control live sessions, and view results. This guide covers everything you need to run engaging workshops, retrospectives, and PI events using SprintPulse.
 
 ---
 
@@ -206,6 +206,161 @@ Before going live, you can submit test responses to verify everything works:
 
 ---
 
+## Running a Retro Session
+
+Retro boards provide a collaborative space for team retrospectives. Participants add anonymous cards to themed lanes, vote on what matters most, and the team captures action items to drive improvement.
+
+---
+
+### Creating a Retro
+
+1. From the admin dashboard, click **Create New Poll**
+2. Select **Retro** as the activity type
+3. Fill in:
+   - **Team** (required) — select which team this retro belongs to
+   - **Title** (required, max 200 characters) — displayed to participants
+   - **Template** — choose a built-in template or start from scratch
+   - **Votes per User** — how many votes each participant can cast (default: 5)
+   - **Background Image** (optional) — JPEG, PNG, or WebP, max 5 MB
+4. Click **Create Poll**
+
+---
+
+### Templates
+
+SprintPulse includes several built-in templates, each pre-configured with themed columns, icons, and colors:
+
+| Template | Columns | Best For |
+|----------|---------|----------|
+| **Start/Stop/Continue** | Start, Stop, Continue | General sprint retros |
+| **4Ls** | Liked, Learned, Lacked, Longed For | Broader reflection sessions |
+| **Mad/Sad/Glad** | Mad, Sad, Glad | Emotional pulse checks |
+| **Sailboat** | Wind (helps), Anchor (hinders), Rocks (risks), Island (goals) | Visual metaphor retros |
+| **Custom** | You define your own | Any custom format |
+
+Each template comes with distinct lane colors and icons for easy visual identification.
+
+---
+
+### Custom Template
+
+To create a retro with your own structure:
+
+1. Select **Custom** as the template
+2. Click **+ Add Column** to add lanes
+3. For each column, configure:
+   - **Title** — the lane heading (e.g., "What went well?")
+   - **Icon** — choose from the icon picker
+   - **Color** — select a lane color
+4. Add as many columns as you need
+5. Click **Create Poll**
+
+---
+
+### Editing a Retro
+
+1. Find the retro in the dashboard list
+2. Click **Edit**
+3. On the Edit page you can:
+   - Change **Votes per User**
+   - Add new columns with **+ Add Column**
+   - Edit existing column **title**, **icon**, or **color**
+   - Delete columns (with confirmation)
+   - Update the background image
+4. Click **Save Changes** at the bottom of the page
+
+---
+
+### Facilitating a Retro Session
+
+A retro progresses through three phases, controlled from the Facilitate page:
+
+#### Gather Phase
+
+1. Click **Facilitate** next to the retro
+2. Set the phase to **Gather**
+3. Participants add anonymous cards to any lane
+4. Cards are anonymous by default — participants see only their own cards and a count of others
+5. As facilitator, you can see all cards across all lanes in real time
+
+#### Vote Phase
+
+1. Advance the phase to **Vote**
+2. All cards become visible to everyone
+3. Participants vote on cards by clicking the thumbs-up icon
+4. Each participant is limited to the configured votes-per-user count
+5. You can begin adding action items during this phase
+
+#### Closed Phase
+
+1. Advance the phase to **Closed**
+2. The board becomes read-only — no new cards or votes
+3. Action items are visible to all participants
+4. Export the board for record-keeping
+
+---
+
+### Managing Columns at Runtime
+
+You can add, edit, delete, and reorder columns during a live retro session directly from the Facilitate page:
+
+1. Click the **column settings** icon on the Facilitate page
+2. **Add** — click **+ Add Column** and configure title, icon, and color
+3. **Edit** — click a column's edit icon to change its title, icon, or color
+4. **Delete** — click the delete icon next to a column (with confirmation)
+5. **Reorder** — drag columns to rearrange their order
+
+Changes are reflected to all participants in real time.
+
+---
+
+### Action Items
+
+Capture next steps during the Vote or Closed phase:
+
+1. Click **+ Add Action Item** on the Facilitate page
+2. Fill in:
+   - **Text** (required) — describe the action
+   - **Assignee** (required) — who is responsible
+   - **Due Date** (optional) — when it should be completed
+3. Click **Add**
+4. Action items appear on the board for all participants in the Closed phase
+
+---
+
+### Exporting
+
+Two export formats are available from the Facilitate page during the Closed phase:
+
+| Format | Contents |
+|--------|----------|
+| **PDF** | Styled report with lane headings, cards, vote counts, and action items |
+| **JSON** | Structured data export of all lanes, cards, votes, and action items |
+
+Click the **Export** button and select your preferred format.
+
+---
+
+### Preview as Participant
+
+To see exactly what participants see during a session:
+
+1. On the Facilitate page, click the **Preview** button
+2. A participant-perspective view opens
+3. Verify card visibility, lane layout, and phase indicators
+4. Close the preview to return to the facilitator view
+
+---
+
+### Sharing the Retro
+
+Share the retro with your team using either method:
+
+1. **Team PIN** — participants join via PIN and see the retro in their list (same as polls)
+2. **Direct Link / QR Code** — click the **Share** button on the Facilitate page to copy the unique URL or display a QR code for participants to scan
+
+---
+
 ## Profile Management
 
 1. Click **Profile** in the navigation bar
@@ -238,4 +393,4 @@ Before going live, you can submit test responses to verify everything works:
 
 ---
 
-*SprintPulse v2.1.0*
+*SprintPulse v3.0.0*

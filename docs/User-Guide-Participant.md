@@ -2,7 +2,7 @@
 
 ## Overview
 
-As a participant, you respond to polls during live sessions such as workshops, retrospectives, and PI events. This guide explains how to access a poll using your team PIN, submit your responses, and what to expect during a session.
+As a participant, you respond to polls and contribute to retro boards during live sessions such as workshops, retrospectives, and PI events. This guide explains how to access a poll or retro using your team PIN, submit your responses, and what to expect during a session.
 
 ---
 
@@ -66,6 +66,68 @@ If the facilitator resets the poll:
 
 ---
 
+## Participating in a Retro
+
+Retro boards are collaborative spaces where your team reflects on what's working and what needs to change. The facilitator guides the session through three phases.
+
+---
+
+### Joining a Retro
+
+1. Navigate to the app and click **Participant**
+2. Enter the **team PIN** provided by your facilitator (or use a direct link/QR code)
+3. Click **Join Team**
+4. Select the retro from your team's activity list
+5. Enter your **display name** and click **Continue**
+
+---
+
+### Gather Phase
+
+During the Gather phase, you contribute cards to the board:
+
+1. Click **+ Add Card** on any lane (e.g., "Start", "Stop", "Continue")
+2. Type your thought in the text field and press **Enter** or click **Add**
+3. You can add as many cards as you like to any lane
+4. To edit a card you wrote, click on it and update the text
+5. To delete a card you wrote, click the delete icon on the card
+
+**Privacy:** Cards are anonymous by default. You can see your own cards, but other participants' cards appear only as a count per lane until the Vote phase begins.
+
+---
+
+### Vote Phase
+
+Once the facilitator advances to the Vote phase:
+
+1. All cards across all lanes become visible to everyone
+2. Vote on cards you find important by clicking the **thumbs-up** icon
+3. You have a limited number of votes (set by the facilitator) — spend them wisely
+4. You can remove a vote by clicking the thumbs-up icon again on a card you previously voted on
+
+Your remaining vote count is displayed on screen.
+
+---
+
+### Closed Phase
+
+When the facilitator closes the retro:
+
+1. The board becomes read-only — you cannot add cards or votes
+2. **Action items** are displayed, showing what the team committed to
+3. Each action item includes a description, assignee, and optional due date
+4. The facilitator may share an export (PDF or JSON) with the team
+
+---
+
+### Visual Features
+
+- **Lane icons and colors** — each column has a distinct icon and color for easy identification
+- **Background images** — the facilitator may set a themed background
+- **Phase indicator** — a banner at the top shows the current phase (Gather, Vote, or Closed) so you always know what actions are available
+
+---
+
 ## What Happens During a Live Session
 
 ### Voting Opens and Closes
@@ -113,4 +175,4 @@ If the facilitator resets the poll:
 
 ---
 
-*SprintPulse v2.1.0*
+*SprintPulse v3.0.0*
