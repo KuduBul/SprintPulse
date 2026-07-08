@@ -376,7 +376,9 @@ function RetroParticipantView({ pollId, title, backgroundImageUrl }: { pollId: s
       const participant = getParticipant(pollId);
       const token = participant?.token ?? '';
 
-      const res = await fetch(`/api/retro/by-poll/${pollId}?role=participant&participantToken=${token}`);
+      const res = await fetch(`/api/retro/by-poll/${pollId}?role=participant&participantToken=${token}`, {
+        cache: 'no-store',
+      });
       if (res.ok) {
         const data = await res.json();
         setBoard(data);
@@ -531,7 +533,9 @@ function RetroParticipantView({ pollId, title, backgroundImageUrl }: { pollId: s
             setTimeout(() => {
               const participant = getParticipant(pollId);
               const token = participant?.token ?? '';
-              fetch(`/api/retro/by-poll/${pollId}?role=participant&participantToken=${token}`)
+              fetch(`/api/retro/by-poll/${pollId}?role=participant&participantToken=${token}`, {
+                cache: 'no-store',
+              })
                 .then(r => r.ok ? r.json() : null)
                 .then(data => { if (data) setBoard(data); });
             }, 500);

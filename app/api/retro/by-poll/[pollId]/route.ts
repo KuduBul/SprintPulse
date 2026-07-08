@@ -36,7 +36,14 @@ export async function GET(request: Request, context: any) {
     const participantToken = url.searchParams.get('participantToken') ?? undefined;
 
     const board = await retroService.getBoard(pollId, { role, participantToken });
-    return NextResponse.json(board);
+    return NextResponse.json(board, {
+      headers: {
+        // Prevent browser/CDN caching so participants always get the current
+        // phase. Without this, polling can keep serving a stale cached
+        // response and the participant stays stuck on an old phase.
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+      },
+    });
   } catch (error) {
     const err = error as Error & { code?: string };
     if (err.code === 'NOT_FOUND') {
