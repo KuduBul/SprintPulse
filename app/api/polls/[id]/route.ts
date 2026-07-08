@@ -18,11 +18,11 @@ export const GET = withAuth(async (_request: Request, context: { userId: string;
     }
 
     // For retro polls, include the retroBoard ID so the facilitate page can render controls
-    let retroBoard: { id: string } | null = null;
+    let retroBoard: { id: string; template: string | null } | null = null;
     if (poll.type === 'retro') {
       const board = await prisma.retroBoard.findUnique({
         where: { pollId: poll.id },
-        select: { id: true },
+        select: { id: true, template: true },
       });
       retroBoard = board;
     }

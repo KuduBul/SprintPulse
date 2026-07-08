@@ -397,6 +397,18 @@ function RetroParticipantView({ pollId, title, backgroundImageUrl }: { pollId: s
     }
   }, [pollId, hasParticipant, fetchBoard]);
 
+  // Poll the board every 3 seconds so phase changes from the facilitator
+  // are reflected automatically (e.g. Gather → Vote transition).
+  useEffect(() => {
+    if (!hasParticipant(pollId)) return;
+
+    const interval = setInterval(() => {
+      fetchBoard();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [pollId, hasParticipant, fetchBoard]);
+
   // If no participant token, show name entry
   if (!hasParticipant(pollId)) {
     return (

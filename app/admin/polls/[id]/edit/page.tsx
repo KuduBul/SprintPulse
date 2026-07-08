@@ -14,7 +14,7 @@ interface PollData {
   backgroundImageUrl: string | null;
   teamId: string | null;
   type?: string;
-  retroBoard?: { id: string } | null;
+  retroBoard?: { id: string; template?: string | null } | null;
 }
 
 interface QuestionData {
@@ -68,21 +68,40 @@ export default function EditPollPage() {
   async function handlePollSubmit(data: PollFormData) {
     // Upload image first if one was selected
     if (data.imageFile) {
-      const formData = new FormData();
-      formData.append('file', data.imageFile);
+      if (poll?.type === 'retro' && poll.retroBoard) {
+        // For retro polls, upload to the retro board background endpoint
+        const formData = new FormData();
+        formData.append('file', data.imageFile);
+        formData.append('opacity', '100');
+        formData.append('displayMode', 'cover');
 
-      const uploadRes = await fetch(`/api/polls/${pollId}/upload`, {
-        method: 'POST',
-        body: formData,
-      });
+        const uploadRes = await fetch(`/api/retro/${poll.retroBoard.id}/background`, {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (!uploadRes.ok) {
-        const body = await uploadRes.json();
-        throw new Error(body.error?.message || 'Failed to upload image.');
+        if (!uploadRes.ok) {
+          const body = await uploadRes.json();
+          throw new Error(body.error?.message || 'Failed to upload background image.');
+        }
+      } else {
+        // For pulse polls, upload to the poll-level endpoint
+        const formData = new FormData();
+        formData.append('file', data.imageFile);
+
+        const uploadRes = await fetch(`/api/polls/${pollId}/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadRes.ok) {
+          const body = await uploadRes.json();
+          throw new Error(body.error?.message || 'Failed to upload image.');
+        }
+
+        const updatedPoll = await uploadRes.json();
+        setPoll(updatedPoll);
       }
-
-      const updatedPoll = await uploadRes.json();
-      setPoll(updatedPoll);
     }
 
     // Update title, description, and teamId
@@ -239,6 +258,7 @@ export default function EditPollPage() {
           submitLabel="Save Changes"
           isEdit={true}
           hideSubmitButton={true}
+          hideBackgroundImage={isRetro && poll.retroBoard?.template !== 'custom'}
           formId="edit-poll-form"
         />
       </section>

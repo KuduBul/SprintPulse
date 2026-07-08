@@ -22,6 +22,7 @@ interface PollFormProps {
   submitLabel: string;
   isEdit?: boolean;
   hideSubmitButton?: boolean;
+  hideBackgroundImage?: boolean;
   formId?: string;
 }
 
@@ -36,7 +37,7 @@ interface FieldErrors {
  * Shared form component for creating and editing polls.
  * Handles client-side validation for title, description, and image file.
  */
-export function PollForm({ initialData, onSubmit, submitLabel, isEdit = false, hideSubmitButton = false, formId }: PollFormProps) {
+export function PollForm({ initialData, onSubmit, submitLabel, isEdit = false, hideSubmitButton = false, hideBackgroundImage = false, formId }: PollFormProps) {
   const [title, setTitle] = useState(initialData?.title ?? '');
   const [description, setDescription] = useState(initialData?.description ?? '');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -270,6 +271,7 @@ export function PollForm({ initialData, onSubmit, submitLabel, isEdit = false, h
       </div>
 
       {/* Image upload field */}
+      {!hideBackgroundImage && (
       <div style={{ marginBottom: 'var(--space-6)' }}>
         <label
           htmlFor="poll-image"
@@ -344,6 +346,7 @@ export function PollForm({ initialData, onSubmit, submitLabel, isEdit = false, h
           </p>
         )}
       </div>
+      )}
 
       {/* Submit button */}
       {!hideSubmitButton && (

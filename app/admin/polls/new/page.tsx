@@ -58,12 +58,31 @@ export default function NewPollPage() {
     // Upload background image if one was selected
     if (data.imageFile && result.data) {
       // Retro creation returns { poll, board }; pulse returns the poll directly.
-      const created = result.data as { id?: string; poll?: { id: string } };
+      const created = result.data as { id?: string; poll?: { id: string }; board?: { id: string } };
       const newPollId = created.poll?.id ?? created.id;
+      const newBoardId = created.board?.id;
 
       if (!newPollId) {
         console.error('Could not determine created poll id for image upload');
+      } else if (activityType === 'retro' && newBoardId) {
+        // For retro polls, upload to the retro board background endpoint
+        // so the image is stored in the board's backgroundImage JSON field.
+        const formData = new FormData();
+        formData.append('file', data.imageFile);
+        formData.append('opacity', '100');
+        formData.append('displayMode', 'cover');
+
+        const uploadRes = await fetch(`/api/retro/${newBoardId}/background`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadRes.ok) {
+          // Board was created but image failed — don't block navigation
+          console.error('Retro background image upload failed after board creation');
+        }
       } else {
+        // For pulse polls, upload to the poll-level endpoint
         const formData = new FormData();
         formData.append('file', data.imageFile);
 
@@ -102,7 +121,7 @@ export default function NewPollPage() {
         onRetroConfigChange={setRetroConfig}
       />
 
-      <PollForm onSubmit={handleSubmit} submitLabel={activityType === 'retro' ? 'Create Retro' : 'Create Poll'} />
+      <PollForm onSubmit={handleSubmit} submitLabel={activityType === 'retro' ? 'Create Retro' : 'Create Poll'} hideBackgroundImage={activityType === 'retro' && retroConfig.template !== 'custom'} />
     </section>
   );
 }
