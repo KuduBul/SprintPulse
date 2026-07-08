@@ -323,6 +323,7 @@ export function InteractiveRetroBoardView({
         authorName: participantName,
         isOwn: true,
         voteCount: 0,
+        hasVoted: false,
         createdAt: new Date(),
       };
 
@@ -461,16 +462,37 @@ export function InteractiveRetroBoardView({
 // --------------------------------------------------------------------------
 
 /**
- * Computes the user's effective vote count: server votes + optimistic votes - optimistic unvotes.
- * We count voted cards from the optimistic state overlay plus cards already voted in the server view.
- * (Note: we can't perfectly track votes from server view alone since the API doesn't mark which
- * cards the user voted on. We track optimistic additions.)
+ * Computes the total number of votes the current user has cast, combining
+ * server truth (cards marked `hasVoted`) with optimistic additions/removals.
  */
 function computeUserVoteCount(serverBoard: BoardView, optimistic: OptimisticState): number {
-  // We use the optimistic overlay to track user votes. In a full implementation
-  // the server would provide a `hasVoted` field per card. For now, count optimistic
-  // votes added in this session minus unvotes.
-  return optimistic.votedCardIds.size - optimistic.unvotedCardIds.size;
+  // Count cards the server already knows the user voted on.
+  let serverVotes = 0;
+  for (const lane of serverBoard.lanes) {
+    for (const card of lane.cards) {
+      if (card.hasVoted) serverVotes++;
+    }
+  }
+
+  // Adjust for optimistic votes not yet confirmed by the server, and
+  // optimistic unvotes not yet reflected in the server response.
+  let optimisticAdded = 0;
+  for (const cardId of optimistic.votedCardIds) {
+    const alreadyCounted = serverBoard.lanes.some((l) =>
+      l.cards.some((c) => c.id === cardId && c.hasVoted)
+    );
+    if (!alreadyCounted) optimisticAdded++;
+  }
+
+  let optimisticRemoved = 0;
+  for (const cardId of optimistic.unvotedCardIds) {
+    const wasCounted = serverBoard.lanes.some((l) =>
+      l.cards.some((c) => c.id === cardId && c.hasVoted)
+    );
+    if (wasCounted) optimisticRemoved++;
+  }
+
+  return serverVotes + optimisticAdded - optimisticRemoved;
 }
 
 // --------------------------------------------------------------------------

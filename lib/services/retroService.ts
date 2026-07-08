@@ -64,6 +64,8 @@ export interface BoardCardView {
   authorName: string | null;
   isOwn: boolean;
   voteCount: number;
+  /** Whether the current viewer has voted on this card (participant only). */
+  hasVoted: boolean;
   createdAt: Date;
 }
 
@@ -434,6 +436,16 @@ export function createRetroService(): RetroService {
         voteCounts.set(vote.cardId, (voteCounts.get(vote.cardId) ?? 0) + 1);
       }
 
+      // Track which cards the current viewer has voted on (for vote-count display).
+      const viewerVotedCardIds = new Set<string>();
+      if (viewer.participantToken) {
+        for (const vote of votes) {
+          if (vote.voterToken === viewer.participantToken) {
+            viewerVotedCardIds.add(vote.cardId);
+          }
+        }
+      }
+
       const phase = board.phase as RetroPhase;
       const isFacilitator = viewer.role === 'facilitator';
 
@@ -474,6 +486,7 @@ export function createRetroService(): RetroService {
           authorName: exposeIdentity ? card.authorName : null,
           isOwn,
           voteCount: voteCounts.get(card.id) ?? 0,
+          hasVoted: viewerVotedCardIds.has(card.id),
           createdAt: card.createdAt,
         };
 
