@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, useCallback, FormEvent } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useSessionToken } from '@/lib/hooks/useSessionToken';
+import { useParticipantToken } from '@/lib/hooks/useParticipantToken';
+import { InteractiveRetroBoardView } from '@/components/retro/InteractiveRetroBoardView';
 import { ParticipantForm } from '@/components/participant/ParticipantForm';
+import { BoardView } from '@/lib/services/retroService';
 
 interface FacilitatorState {
   votingOpen: boolean;
@@ -17,6 +20,7 @@ interface PollData {
   title: string;
   description: string | null;
   backgroundImageUrl: string | null;
+  type?: string;
   facilitatorState: FacilitatorState;
   questions: Array<{
     id: string;
@@ -158,8 +162,8 @@ export default function ParticipantPollPage() {
     );
   }
 
-  // Voting closed state
-  if (poll && !poll.facilitatorState.votingOpen) {
+  // Voting closed state — only applies to pulse polls, not retro
+  if (poll && poll.type !== 'retro' && !poll.facilitatorState.votingOpen) {
     return (
       <main id="main-content" style={{ padding: 'var(--space-8)', textAlign: 'center' }}>
         <h1 style={{ fontSize: 'var(--font-size-2xl)', marginBottom: 'var(--space-4)' }}>
@@ -182,6 +186,11 @@ export default function ParticipantPollPage() {
         </div>
       </main>
     );
+  }
+
+  // Retro poll — show the interactive retro board for participants
+  if (poll && poll.type === 'retro') {
+    return <RetroParticipantView pollId={poll.id} title={poll.title} backgroundImageUrl={poll.backgroundImageUrl} />;
   }
 
   // Already submitted state
@@ -346,6 +355,171 @@ export default function ParticipantPollPage() {
           Continue
         </button>
       </form>
+    </main>
+  );
+}
+
+// --------------------------------------------------------------------------
+// Retro Participant View — shows the interactive retro board for participants
+// --------------------------------------------------------------------------
+
+function RetroParticipantView({ pollId, title, backgroundImageUrl }: { pollId: string; title: string; backgroundImageUrl: string | null }) {
+  const { getParticipant, createParticipant, hasParticipant } = useParticipantToken();
+  const [board, setBoard] = useState<BoardView | null>(null);
+  const [boardId, setBoardId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [name, setName] = useState('');
+
+  // Fetch the retro board for this poll using the dedicated by-poll lookup
+  const fetchBoard = useCallback(async () => {
+    try {
+      const participant = getParticipant(pollId);
+      const token = participant?.token ?? '';
+
+      const res = await fetch(`/api/retro/by-poll/${pollId}?role=participant&participantToken=${token}`);
+      if (res.ok) {
+        const data = await res.json();
+        setBoard(data);
+        setBoardId(data.id);
+      }
+    } catch {
+      // ignore
+    }
+    setLoading(false);
+  }, [pollId, getParticipant]);
+
+  useEffect(() => {
+    // Only fetch board once participant has a token
+    if (hasParticipant(pollId)) {
+      fetchBoard();
+    } else {
+      setLoading(false);
+    }
+  }, [pollId, hasParticipant, fetchBoard]);
+
+  // If no participant token, show name entry
+  if (!hasParticipant(pollId)) {
+    return (
+      <main id="main-content" style={{ padding: 'var(--space-8)', maxWidth: '500px', margin: '0 auto' }}>
+        <h1 style={{ fontSize: 'var(--font-size-2xl)', marginBottom: 'var(--space-4)', textAlign: 'center' }}>
+          {title}
+        </h1>
+        <div style={{ marginBottom: 'var(--space-4)' }}>
+          <label htmlFor="participant-name" style={{ display: 'block', fontWeight: 'var(--font-weight-medium)', marginBottom: 'var(--space-2)' }}>
+            Enter your name to join
+          </label>
+          <input
+            id="participant-name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your display name"
+            maxLength={50}
+            style={{ width: '100%', padding: 'var(--space-3)', border: '1px solid var(--color-border-strong)', borderRadius: 'var(--radius-md)', fontSize: 'var(--font-size-base)' }}
+          />
+        </div>
+        <button
+          onClick={() => {
+            if (name.trim().length >= 2) {
+              createParticipant(pollId, name.trim());
+              // Trigger re-render by fetching the board
+              fetchBoard();
+            }
+          }}
+          disabled={name.trim().length < 2}
+          style={{ width: '100%', padding: 'var(--space-3)', backgroundColor: 'var(--color-primary-700)', color: 'var(--color-text-inverse)', border: 'none', borderRadius: 'var(--radius-md)', fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', cursor: name.trim().length >= 2 ? 'pointer' : 'not-allowed' }}
+        >
+          Join Retro
+        </button>
+      </main>
+    );
+  }
+
+  if (loading) {
+    return (
+      <main id="main-content" style={{ padding: 'var(--space-8)', textAlign: 'center' }}>
+        <p>Loading retro board...</p>
+      </main>
+    );
+  }
+
+  if (!board || !boardId) {
+    return (
+      <main id="main-content" style={{ padding: 'var(--space-8)', textAlign: 'center' }}>
+        <h1 style={{ fontSize: 'var(--font-size-2xl)', marginBottom: 'var(--space-4)' }}>{title}</h1>
+        <p style={{ color: 'var(--color-text-secondary)' }}>Unable to load retro board. Please try refreshing.</p>
+      </main>
+    );
+  }
+
+  const phaseIndicator = board.phase === 'gather'
+    ? { icon: '🟢', label: 'Gathering Cards' }
+    : board.phase === 'vote'
+    ? { icon: '🗳️', label: 'Voting' }
+    : { icon: '🔒', label: 'Closed' };
+
+  return (
+    <main id="main-content" style={{ padding: 'var(--space-4)', maxWidth: '1200px', margin: '0 auto' }}>
+      {/* Gradient header */}
+      <div style={{
+        background: 'linear-gradient(135deg, var(--color-primary-700) 0%, var(--color-primary-500) 50%, var(--color-secondary-500) 100%)',
+        borderRadius: 'var(--radius-xl)',
+        padding: 'var(--space-6) var(--space-8)',
+        marginBottom: 'var(--space-5)',
+        textAlign: 'center',
+        boxShadow: 'var(--shadow-md)',
+      }}>
+        <h1 style={{
+          fontSize: 'var(--font-size-xl)',
+          fontWeight: 'var(--font-weight-bold)',
+          color: 'var(--color-text-inverse)',
+          margin: 0,
+          marginBottom: 'var(--space-2)',
+        }}>
+          {title}
+        </h1>
+        {/* Phase indicator */}
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 'var(--space-2)',
+          padding: 'var(--space-1) var(--space-3)',
+          backgroundColor: 'rgba(255, 255, 255, 0.2)',
+          borderRadius: 'var(--radius-full)',
+          backdropFilter: 'blur(4px)',
+        }}>
+          <span style={{ fontSize: 'var(--font-size-sm)' }}>{phaseIndicator.icon}</span>
+          <span style={{
+            fontSize: 'var(--font-size-sm)',
+            fontWeight: 'var(--font-weight-medium)',
+            color: 'var(--color-text-inverse)',
+          }}>
+            {phaseIndicator.label}
+          </span>
+        </div>
+      </div>
+
+      {/* Board with responsive horizontal scroll for >3 columns on mobile */}
+      <div style={{
+        overflowX: board.lanes.length > 3 ? 'auto' : 'visible',
+        WebkitOverflowScrolling: 'touch',
+        paddingBottom: 'var(--space-2)',
+      }}>
+        <InteractiveRetroBoardView
+          board={board}
+          boardId={boardId}
+          backgroundImageUrl={backgroundImageUrl}
+          boardTitle={title}
+          participantPollId={pollId}
+          onMutate={() => {
+            const participant = getParticipant(pollId);
+            const token = participant?.token ?? '';
+            fetch(`/api/retro/by-poll/${pollId}?role=participant&participantToken=${token}`)
+              .then(r => r.ok ? r.json() : null)
+              .then(data => { if (data) setBoard(data); });
+          }}
+        />
+      </div>
     </main>
   );
 }

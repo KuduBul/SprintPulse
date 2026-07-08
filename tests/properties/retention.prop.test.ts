@@ -141,8 +141,19 @@ function daysAgo(days: number): Date {
   return d;
 }
 
-/** Generates a number of days in the past (0 to 400 days) */
-const daysAgoArb = fc.integer({ min: 0, max: 400 });
+/**
+ * Generates a number of days in the past (0 to 400 days).
+ *
+ * Excludes the exact policy boundaries (90 = response cutoff, 365 = audit
+ * cutoff) because a record created "exactly N days ago" at setup time drifts a
+ * few milliseconds past the cutoff by the time purge() computes `Date.now()`,
+ * making deletion at the boundary timing-dependent. Real data never lands on a
+ * microsecond-perfect boundary; excluding it keeps the exact-count assertions
+ * deterministic without changing what the property verifies.
+ */
+const daysAgoArb = fc
+  .integer({ min: 0, max: 400 })
+  .filter((d) => d !== 90 && d !== 365);
 
 /** Generates a response with a configurable age in days */
 const responseArb = (ageInDays: number): MockResponse => ({

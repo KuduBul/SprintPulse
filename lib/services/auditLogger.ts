@@ -21,7 +21,8 @@ export type AuditAction =
   | 'VOTING_CLOSED'
   | 'TOKEN_REGENERATED'
   | 'DATA_PURGED'
-  | 'RETRO_BOARD_CREATED';
+  | 'RETRO_BOARD_CREATED'
+  | 'RETRO_PHASE_CHANGED';
 
 /**
  * An audit log entry to be recorded.

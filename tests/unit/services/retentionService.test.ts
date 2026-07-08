@@ -110,6 +110,7 @@ describe('RetentionService', () => {
       expect(mockDb.poll.findMany).toHaveBeenCalledWith({
         where: {
           isDeleted: true,
+          type: 'pulse',
           updatedAt: {
             lt: expect.any(Date),
           },

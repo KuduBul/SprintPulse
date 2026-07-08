@@ -37,12 +37,18 @@ export const ValidatePinSchema = z.object({
  * Title: 1–200 chars (required), Description: 0–1000 chars (optional).
  * teamId: optional UUID for team assignment.
  * tokenExpiresAt: optional datetime for access token expiry.
+ * type: "pulse" (default) or "retro" — determines which engine handles the activity.
  */
 export const CreatePollSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(1000).optional(),
   teamId: z.string().uuid().optional(),
   tokenExpiresAt: z.string().datetime().nullable().optional(),
+  type: z.enum(['pulse', 'retro']).optional(),
+  /** Retro-specific fields (required when type is "retro"). */
+  template: z.enum(['start_stop_continue', '4ls', 'mad_sad_glad', 'custom']).optional(),
+  lanes: z.array(z.string().min(1).max(100)).min(1).max(8).optional(),
+  votesPerUser: z.number().int().positive().optional(),
 });
 
 /**
@@ -120,6 +126,54 @@ export const FacilitatorStateSchema = z.object({
   revealStage: z.enum(['HIDDEN', 'COUNTS', 'DETAILS']).optional(),
 });
 
+/**
+ * Schema for adding a retro card (POST /api/retro/[boardId]/cards).
+ */
+export const AddRetroCardSchema = z.object({
+  laneId: z.string().uuid(),
+  authorToken: z.string().min(1),
+  authorName: z.string().min(1).max(50),
+  text: z.string().min(1).max(2000),
+});
+
+/**
+ * Schema for editing a retro card (PATCH /api/retro/[boardId]/cards/[cardId]).
+ */
+export const EditRetroCardSchema = z.object({
+  authorToken: z.string().min(1),
+  text: z.string().min(1).max(2000),
+});
+
+/**
+ * Schema for deleting a retro card body (DELETE /api/retro/[boardId]/cards/[cardId]).
+ */
+export const DeleteRetroCardSchema = z.object({
+  authorToken: z.string().min(1),
+});
+
+/**
+ * Schema for casting/removing a retro vote (POST/DELETE /api/retro/[boardId]/votes).
+ */
+export const RetroVoteSchema = z.object({
+  cardId: z.string().uuid(),
+  voterToken: z.string().min(1),
+});
+
+/**
+ * Schema for advancing the retro board phase (POST /api/retro/[boardId]/phase).
+ */
+export const RetroPhaseSchema = z.object({
+  phase: z.enum(['gather', 'vote', 'closed']),
+});
+
+/**
+ * Schema for the viewer context query params on GET /api/retro/[boardId].
+ */
+export const RetroBoardQuerySchema = z.object({
+  role: z.enum(['facilitator', 'participant']).default('participant'),
+  participantToken: z.string().optional(),
+});
+
 // Inferred TypeScript types
 export type Position = z.infer<typeof PositionSchema>;
 export type CreateTeamInput = z.infer<typeof CreateTeamSchema>;
@@ -133,3 +187,9 @@ export type UpdateQuestionInput = z.infer<typeof UpdateQuestionSchema>;
 export type Answer = z.infer<typeof AnswerSchema>;
 export type SubmitResponsesInput = z.infer<typeof SubmitResponsesSchema>;
 export type FacilitatorState = z.infer<typeof FacilitatorStateSchema>;
+export type AddRetroCardInput = z.infer<typeof AddRetroCardSchema>;
+export type EditRetroCardInput = z.infer<typeof EditRetroCardSchema>;
+export type DeleteRetroCardInput = z.infer<typeof DeleteRetroCardSchema>;
+export type RetroVoteInput = z.infer<typeof RetroVoteSchema>;
+export type RetroPhaseInput = z.infer<typeof RetroPhaseSchema>;
+export type RetroBoardQuery = z.infer<typeof RetroBoardQuerySchema>;

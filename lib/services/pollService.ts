@@ -23,6 +23,7 @@ export interface PublicPollView {
   title: string;
   description: string | null;
   backgroundImageUrl: string | null;
+  type: string;
   facilitatorState: {
     votingOpen: boolean;
     liveResults: boolean;
@@ -74,6 +75,7 @@ export function createPollService(): PollService {
             userId,
             teamId: data.teamId ?? null,
             accessToken,
+            type: data.type ?? 'pulse',
             facilitatorState: DEFAULT_FACILITATOR_STATE as unknown as Prisma.InputJsonValue,
           },
         });
@@ -301,6 +303,7 @@ export function createPollService(): PollService {
         title: poll.title,
         description: poll.description,
         backgroundImageUrl: poll.backgroundImageUrl,
+        type: poll.type ?? 'pulse',
         facilitatorState: {
           votingOpen: Boolean(state.votingOpen),
           liveResults: Boolean(state.liveResults),
@@ -349,6 +352,7 @@ export function createPollService(): PollService {
         title: poll.title,
         description: poll.description,
         backgroundImageUrl: poll.backgroundImageUrl,
+        type: poll.type ?? 'pulse',
         facilitatorState: {
           votingOpen: Boolean(state.votingOpen),
           liveResults: Boolean(state.liveResults),

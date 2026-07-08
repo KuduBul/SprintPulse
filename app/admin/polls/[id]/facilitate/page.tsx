@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useApi } from '@/lib/hooks/useApi';
 import { FacilitatorDashboard } from '@/components/facilitator/FacilitatorDashboard';
+import { RetroFacilitatorControls } from '@/components/retro/RetroFacilitatorControls';
 import Link from 'next/link';
 
 interface PollData {
@@ -12,6 +13,8 @@ interface PollData {
   description: string | null;
   backgroundImageUrl: string | null;
   accessToken?: string;
+  type?: string;
+  retroBoard?: { id: string } | null;
 }
 
 interface QuestionData {
@@ -49,14 +52,14 @@ export default function FacilitatePollPage() {
           setPoll(pollRes.data);
         }
 
-        // Fetch questions - the poll GET may include them, or we fetch separately
-        // Based on the API structure, questions are fetched via the poll's public endpoint
-        // or we can use the admin poll endpoint which may include questions
-        const questionsRes = await get<QuestionData[]>(
-          `/api/polls/${pollId}/questions`
-        );
-        if (questionsRes.data) {
-          setQuestions(questionsRes.data);
+        // For pulse polls, fetch questions
+        if (!pollRes.data || pollRes.data.type !== 'retro') {
+          const questionsRes = await get<QuestionData[]>(
+            `/api/polls/${pollId}/questions`
+          );
+          if (questionsRes.data) {
+            setQuestions(questionsRes.data);
+          }
         }
       } catch {
         setError('An unexpected error occurred.');
@@ -101,7 +104,7 @@ export default function FacilitatePollPage() {
             fontWeight: 'var(--font-weight-semibold)',
           }}
         >
-          Back to Polls
+          Back to Sessions
         </Link>
       </section>
     );
@@ -112,6 +115,26 @@ export default function FacilitatePollPage() {
       <section aria-label="Poll not found">
         <p style={{ color: 'var(--color-text-secondary)' }}>Poll not found.</p>
       </section>
+    );
+  }
+
+  // Retro-type poll: show RetroFacilitatorControls instead of the pulse dashboard
+  if (poll.type === 'retro') {
+    if (!poll.retroBoard) {
+      return (
+        <section aria-label="Retro board loading">
+          <p style={{ color: 'var(--color-text-secondary)' }}>
+            Loading retro board... If this persists, the retro board may not have been created correctly.
+          </p>
+        </section>
+      );
+    }
+    return (
+      <RetroFacilitatorControls
+        boardId={poll.retroBoard.id}
+        pollTitle={poll.title}
+        accessToken={poll.accessToken}
+      />
     );
   }
 

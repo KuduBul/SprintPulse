@@ -1,0 +1,153 @@
+name: Quality Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  static-checks:
+    name: Static Checks (matrix)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: Polling_App/node_modules
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('Polling_App/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./Polling_App
+
+      - name: TypeScript check
+        run: npx tsc --noEmit --pretty false
+        working-directory: ./Polling_App
+
+      - name: ESLint
+        run: npx eslint --ext .ts,.tsx . -f json > eslint-output.json || true
+        working-directory: ./Polling_App
+
+      - name: Fail on ESLint errors
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const file = 'Polling_App/eslint-output.json';
+          if (!fs.existsSync(file)) {
+            console.error('ESLint output file not found:', file);
+            process.exit(1);
+          }
+          const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+          const errorCount = Array.isArray(data) ? data.reduce((sum, item) => sum + (item.errorCount || 0), 0) : 0;
+          if (errorCount > 0) {
+            console.error(`ESLint found ${errorCount} error(s). Failing the job.`);
+            process.exit(1);
+          }
+          console.log('ESLint completed with no errors.');
+          NODE
+        working-directory: ./Polling_App
+
+      - name: Upload static artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-artifacts-${{ github.sha }}-node${{ matrix.node-version }}
+          path: |
+            Polling_App/eslint-output.json
+
+  e2e:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    needs: static-checks
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: Polling_App/node_modules
+          key: ${{ runner.os }}-node-18-${{ hashFiles('Polling_App/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-18-
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./Polling_App
+
+      - name: Setup Playwright (browsers + deps)
+        uses: microsoft/playwright-github-action@v1
+        with:
+          install-deps: true
+        working-directory: ./Polling_App
+
+      - name: Run quality review (E2E + artifacts)
+        run: |
+          set -o pipefail
+          npm run quality:review
+        working-directory: ./Polling_App
+
+      - name: Upload quality artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-artifacts-${{ github.sha }}
+          path: Polling_App/.cq_artifacts
+
+      - name: Create PR comment with agent command
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const basePath = 'Polling_App/.cq_artifacts';
+            let artifactPath = basePath;
+            try {
+              if (fs.existsSync(basePath)) {
+                const entries = fs.readdirSync(basePath).map(d => ({ path: `${basePath}/${d}`, mtime: fs.statSync(`${basePath}/${d}`).mtimeMs }));
+                if (entries.length) {
+                  entries.sort((a,b)=> b.mtime - a.mtime);
+                  artifactPath = entries[0].path;
+                }
+              }
+            } catch (e) {
+              artifactPath = basePath;
+            }
+            const body = `Quality review artifacts are available at: **${artifactPath}**\n\nTo process these artifacts with the agent run:\n\n@code-quality-reviewer run review with-artifacts:${artifactPath}\n\n(Note: invoking the agent via PR comment requires a bot/integration that listens for this command.)`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });

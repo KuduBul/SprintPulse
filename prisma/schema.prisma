@@ -106,13 +106,14 @@ model AuditLog {
 // ---------------------------------------------------------------------------
 
 model RetroBoard {
-  id           String   @id @default(uuid())
-  pollId       String   @unique // 1:1 with the Poll shell
-  template     String // "start_stop_continue" | "4ls" | "mad_sad_glad" | "custom"
-  phase        String   @default("gather") // "gather" | "vote" | "closed"
-  votesPerUser Int      @default(3) // cap enforced during vote phase
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String   @id @default(uuid())
+  pollId          String   @unique // 1:1 with the Poll shell
+  template        String // "start_stop_continue" | "4ls" | "mad_sad_glad" | "custom"
+  phase           String   @default("gather") // "gather" | "vote" | "closed"
+  votesPerUser    Int      @default(3) // cap enforced during vote phase
+  backgroundImage Json? // Phase 2B: { url, storagePath, opacity, displayMode } | null
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   poll  Poll        @relation(fields: [pollId], references: [id])
   lanes RetroLane[]
@@ -123,12 +124,14 @@ model RetroBoard {
 }
 
 model RetroLane {
-  id           String @id @default(uuid())
+  id           String  @id @default(uuid())
   boardId      String
-  title        String @db.VarChar(100)
+  title        String  @db.VarChar(100)
   displayOrder Int
   // Percentage-based position for the desktop board; null => simple column layout.
   position     Json? // { x, y, width, height } | null
+  icon         String? @db.VarChar(10) // Phase 2B: emoji character (nullable for backward compat)
+  color        String? @db.VarChar(30) // Phase 2B: CSS color string (nullable for backward compat)
 
   board RetroBoard  @relation(fields: [boardId], references: [id])
   cards RetroCard[]

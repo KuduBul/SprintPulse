@@ -66,9 +66,12 @@ export function createRetentionService(
 
       // Hard-delete soft-deleted polls older than 30 days
       // First, delete related records for those polls
+      // IMPORTANT: Exclude retro polls from purge — retro data persists across
+      // sprints (Requirement 10.3). Only pulse polls are purged.
       const pollsToDelete = await db.poll.findMany({
         where: {
           isDeleted: true,
+          type: 'pulse',
           updatedAt: {
             lt: pollHardDeleteCutoff,
           },

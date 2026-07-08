@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useApi } from '@/lib/hooks/useApi';
 import { PollForm, PollFormData } from '@/components/admin/PollForm';
 import { ResponsivePollCanvas } from '@/components/canvas/ResponsivePollCanvas';
+import { RetroSettingsEditor } from '@/components/retro/RetroSettingsEditor';
 
 interface PollData {
   id: string;
@@ -12,6 +13,8 @@ interface PollData {
   description: string | null;
   backgroundImageUrl: string | null;
   teamId: string | null;
+  type?: string;
+  retroBoard?: { id: string } | null;
 }
 
 interface QuestionData {
@@ -96,6 +99,9 @@ export default function EditPollPage() {
       throw new Error(result.error.message || 'Failed to update poll.');
     }
     if (result.data) setPoll(result.data as PollData);
+
+    // Return to the sessions list after a successful save.
+    router.push('/admin');
   }
 
   function resetQuestionForm() {
@@ -204,7 +210,7 @@ export default function EditPollPage() {
       <section aria-label="Error loading poll">
         <p style={{ color: 'var(--color-error-600)', marginBottom: 'var(--space-4)' }}>{fetchError}</p>
         <button onClick={() => router.push('/admin')} style={{ padding: 'var(--space-2) var(--space-4)', backgroundColor: 'var(--color-primary-700)', color: 'var(--color-text-on-primary)', border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
-          Back to Polls
+          Back to Sessions
         </button>
       </section>
     );
@@ -218,12 +224,14 @@ export default function EditPollPage() {
     );
   }
 
+  const isRetro = poll.type === 'retro';
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
       {/* Poll Metadata */}
       <section aria-label="Edit poll" style={{ maxWidth: '600px' }}>
         <h1 style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', marginBottom: 'var(--space-6)' }}>
-          Edit Poll
+          {isRetro ? 'Edit Retro' : 'Edit Poll'}
         </h1>
         <PollForm
           initialData={{ title: poll.title, description: poll.description ?? '', backgroundImageUrl: poll.backgroundImageUrl, teamId: poll.teamId }}
@@ -235,7 +243,18 @@ export default function EditPollPage() {
         />
       </section>
 
-      {/* Questions Section */}
+      {/* Retro settings — votes per user + column management (retro only) */}
+      {isRetro && poll.retroBoard && (
+        <section aria-label="Retro settings">
+          <h2 style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-bold)', marginBottom: 'var(--space-4)' }}>
+            Board Settings
+          </h2>
+          <RetroSettingsEditor boardId={poll.retroBoard.id} />
+        </section>
+      )}
+
+      {/* Questions Section — only for pulse polls, not retro */}
+      {!isRetro && (
       <section aria-label="Manage questions">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
           <h2 style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-bold)' }}>
@@ -384,9 +403,10 @@ export default function EditPollPage() {
           </ul>
         )}
       </section>
+      )}
 
       {/* Canvas Editor */}
-      {questions.length > 0 && (
+      {!isRetro && questions.length > 0 && (
         <section aria-label="Visual canvas editor">
           <h2 style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-bold)', marginBottom: 'var(--space-4)' }}>
             Visual Canvas Editor

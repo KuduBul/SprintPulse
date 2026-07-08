@@ -96,8 +96,8 @@ export default function AdminPollsPage() {
 
   if (loading) {
     return (
-      <section aria-label="Loading polls">
-        <p style={{ color: 'var(--color-text-secondary)' }}>Loading polls...</p>
+      <section aria-label="Loading sessions">
+        <p style={{ color: 'var(--color-text-secondary)' }}>Loading sessions...</p>
       </section>
     );
   }
@@ -141,7 +141,7 @@ export default function AdminPollsPage() {
             fontWeight: 'var(--font-weight-bold)',
           }}
         >
-          Polls
+          Sessions
         </h1>
         <Link
           href="/admin/polls/new"
@@ -157,7 +157,7 @@ export default function AdminPollsPage() {
             boxShadow: '0 2px 4px rgb(20 93 225 / 0.2)',
           }}
         >
-          Create New Poll
+          Create New Session
         </Link>
       </div>
 
@@ -188,7 +188,7 @@ export default function AdminPollsPage() {
 
       {filteredPolls.length === 0 ? (
         <p style={{ color: 'var(--color-text-secondary)' }}>
-          {filterTeamId ? 'No polls found for this team.' : 'No polls yet. Create your first poll to get started.'}
+          {filterTeamId ? 'No sessions found for this team.' : 'No sessions yet. Create your first session to get started.'}
         </p>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>

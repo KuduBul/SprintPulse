@@ -3,6 +3,7 @@ import { withAuth } from '@/middleware/authGuard';
 import { pollService, teamService } from '@/lib/services';
 import { UpdatePollSchema } from '@/lib/validators/schemas';
 import { validationError, notFoundError, internalError, formatZodError } from '@/lib/api/errors';
+import { prisma } from '@/lib/db/client';
 
 /**
  * GET /api/polls/[id] — Get a single poll by ID (auth required, ownership enforced).
@@ -16,7 +17,17 @@ export const GET = withAuth(async (_request: Request, context: { userId: string;
       return notFoundError('Poll not found');
     }
 
-    return NextResponse.json(poll);
+    // For retro polls, include the retroBoard ID so the facilitate page can render controls
+    let retroBoard: { id: string } | null = null;
+    if (poll.type === 'retro') {
+      const board = await prisma.retroBoard.findUnique({
+        where: { pollId: poll.id },
+        select: { id: true },
+      });
+      retroBoard = board;
+    }
+
+    return NextResponse.json({ ...poll, retroBoard });
   } catch (error) {
     return internalError();
   }

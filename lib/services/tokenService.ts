@@ -10,6 +10,7 @@ export interface ValidatedPoll {
   title: string;
   description: string | null;
   backgroundImageUrl: string | null;
+  type: string;
   facilitatorState: {
     votingOpen: boolean;
     liveResults: boolean;
@@ -86,6 +87,7 @@ export function createTokenService(): TokenService {
         title: poll.title,
         description: poll.description,
         backgroundImageUrl: poll.backgroundImageUrl,
+        type: poll.type ?? 'pulse',
         facilitatorState: {
           votingOpen: Boolean(state.votingOpen),
           liveResults: Boolean(state.liveResults),

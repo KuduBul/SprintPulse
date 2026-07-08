@@ -42,7 +42,7 @@ This plan implements Phase 2A of the Retro Board on the `phase-2-retro` branch, 
     - These tests target retroService (built in task 4) and may be red until then
     - _Requirements: 5.1, 5.3, 5.4, 5.6, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.6, 8.3_
 
-- [ ] 4. Implement the retro service (domain engine)
+- [x] 4. Implement the retro service (domain engine)
   - [x] 4.1 Implement board and lane creation with templates
     - Create lib/services/retroService.ts with createBoard and template-to-lanes expansion
     - Built-in templates: start_stop_continue, 4ls, mad_sad_glad, custom; enforce 1-8 lanes, titles <=100 chars
@@ -55,65 +55,65 @@ This plan implements Phase 2A of the Retro Board on the `phase-2-retro` branch, 
   - [x] 4.3 Implement voting with cap and uniqueness enforcement
     - castVote and removeVote (vote phase only); enforce per-card uniqueness and per-user total cap server-side
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
-  - [~] 4.4 Implement phase control and anonymity-aware board view
+  - [x] 4.4 Implement phase control and anonymity-aware board view
     - setPhase (facilitator only) advancing gather -> vote -> closed and applying phase rules
     - getBoard returns a per-viewer BoardView that strips author identity for non-owned cards while anonymous
     - Closed phase rejects all participant mutations
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 7.5, 7.6, 8.1, 8.2, 8.3, 8.4, 8.5_
-  - [~] 4.5 Verify the property-based tests from task 3 pass
+  - [x] 4.5 Verify the property-based tests from task 3 pass
     - Run the PBT suite against the implemented service; all five properties green
     - _Requirements: 5.1, 5.3, 5.4, 5.6, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.6, 8.3_
 
-- [ ] 5. Implement retro API routes (flag-guarded)
-  - [~] 5.1 Extend activity creation and add retro CRUD routes
+- [x] 5. Implement retro API routes (flag-guarded)
+  - [x] 5.1 Extend activity creation and add retro CRUD routes
     - Extend POST /api/polls to accept type "retro" and create the board
     - Add GET /api/retro/[boardId]; POST /api/retro/[boardId]/cards; PATCH+DELETE /api/retro/[boardId]/cards/[cardId]
     - Add POST+DELETE /api/retro/[boardId]/votes; POST /api/retro/[boardId]/phase
     - Apply the flag guard (404 when disabled) and reuse existing auth/team/token access checks
     - _Requirements: 1.2, 2.1, 2.2, 2.3, 4.1, 5.1, 5.3, 6.4, 7.1, 8.1_
-  - [~] 5.2 Write route tests for guards, phase rules, and error codes
+  - [x] 5.2 Write route tests for guards, phase rules, and error codes
     - Test 404 when flag off; 409 WRONG_PHASE / VOTE_CAP_EXCEEDED; 403 NOT_CARD_OWNER; 400 validation
     - _Requirements: 1.2, 5.6, 7.2, 7.3, 7.4, 8.3_
 
-- [ ] 6. Implement participant identity and join flow
-  - [~] 6.1 Add persistent participant token handling
+- [x] 6. Implement participant identity and join flow
+  - [x] 6.1 Add persistent participant token handling
     - Assign and persist a participantToken in the browser on first retro join; reuse on return
     - Wire authorToken/voterToken from the participant token; reuse the name-entry pattern
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 7. Implement the retro board UI (mobile-first, new component)
-  - [~] 7.1 Build the activity type selector (Pulse / Retro)
+- [x] 7. Implement the retro board UI (mobile-first, new component)
+  - [x] 7.1 Build the activity type selector (Pulse / Retro)
     - Add the flag-gated Pulse/Retro choice to the create-activity flow; Pulse path unchanged
     - _Requirements: 1.1, 2.1, 2.2, 2.3_
-  - [~] 7.2 Build RetroBoardView with desktop and mobile rendering
+  - [x] 7.2 Build RetroBoardView with desktop and mobile rendering
     - Desktop: lanes positioned per layout over optional background image; fallback to even columns
     - Mobile: vertical stacked lanes ordered by displayOrder with board title/image header
     - Implement as a new component independent of the pulse canvas placement code
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
-  - [~] 7.3 Build card add/edit/delete and voting interactions with optimistic updates
+  - [x] 7.3 Build card add/edit/delete and voting interactions with optimistic updates
     - Add/edit/delete own cards in gather; cast capped votes in vote; read-only in closed
     - Apply optimistic updates only on actual operations; roll back on error/next poll
     - _Requirements: 5.1, 5.3, 5.5, 6.5, 7.1, 7.5_
-  - [~] 7.4 Extend the Facilitate dashboard with retro phase + reveal controls
+  - [x] 7.4 Extend the Facilitate dashboard with retro phase + reveal controls
     - Reuse the polling refresh; add phase advance, reveal/anonymise, and export controls
     - _Requirements: 8.1, 8.4, 6.4_
 
-- [ ] 8. Implement export and retention exemption
-  - [~] 8.1 Add board export route and exclude retro tables from purge
+- [x] 8. Implement export and retention exemption
+  - [x] 8.1 Add board export route and exclude retro tables from purge
     - GET /api/retro/[boardId]/export producing JSON and/or CSV of lanes, cards, vote counts, revealed authors
     - Update the /api/system/purge cron logic to exclude retro tables
     - _Requirements: 10.1, 10.2, 10.3_
-  - [~] 8.2 Write export and purge-exemption tests
+  - [x] 8.2 Write export and purge-exemption tests
     - Test export content/format; test purge skips retro data
     - _Requirements: 10.1, 10.2, 10.3_
 
-- [ ] 9. Verify pulse preservation (no regressions)
-  - [~] 9.1 Run the full existing pulse suite and confirm green
+- [x] 9. Verify pulse preservation (no regressions)
+  - [x] 9.1 Run the full existing pulse suite and confirm green
     - Run the existing pulse unit + property suites unchanged; confirm identical behavior
     - Confirm that with the flag off the product is indistinguishable from pre-Phase-2
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
-- [~] 10. Checkpoint - full verification on localhost
+- [x] 10. Checkpoint - full verification on localhost
   - Run full test suite (npx vitest --run), type check (npx tsc --noEmit), and build
   - Manually verify on localhost with the flag on (retro works) and off (pulse-only, retro hidden)
   - Confirm no changes have been merged to main and production remains unaffected

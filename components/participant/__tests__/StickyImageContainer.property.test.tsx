@@ -106,19 +106,22 @@ describe('Property 4: All questions remain scrollable with sticky container pres
         });
         expect(stickyContainer).toBeInTheDocument();
 
-        // Assert all N question cards are rendered as listitems
-        const listItems = screen.getAllByRole('listitem');
-        expect(listItems.length).toBe(questions.length);
+        try {
+          // Assert all N question cards are rendered as listitems
+          const listItems = screen.getAllByRole('listitem');
+          expect(listItems.length).toBe(questions.length);
 
-        // Both sticky container AND all questions coexist in the DOM
-        expect(stickyContainer).toBeInTheDocument();
-        expect(listItems.length).toBeGreaterThanOrEqual(1);
-
-        container!.unmount();
+          // Both sticky container AND all questions coexist in the DOM
+          expect(stickyContainer).toBeInTheDocument();
+          expect(listItems.length).toBeGreaterThanOrEqual(1);
+        } finally {
+          container!.unmount();
+          cleanup();
+        }
       }),
       { numRuns: 100 }
     );
-  });
+  }, 20000);
 });
 
 

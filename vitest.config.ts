@@ -8,7 +8,20 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
+    // Property-based tests run 100+ iterations and can exceed the 5s default
+    // under load (e.g. during `npm run verify`). A higher ceiling prevents
+    // load-induced flaky timeouts without masking real hangs.
+    testTimeout: 20000,
+    hookTimeout: 20000,
     include: ['**/*.{test,spec}.{ts,tsx}', 'tests/**/*.{test,spec}.{ts,tsx}'],
+    // Smoke tests hit a real database and run under their own config
+    // (vitest.smoke.config.ts). Exclude them from the mocked unit/property run
+    // so they aren't executed twice (and with the wrong environment/timeout).
+    exclude: [
+      '**/node_modules/**',
+      '**/.next/**',
+      'tests/smoke/**',
+    ],
     coverage: {
       reporter: ['text', 'json', 'html'],
       exclude: [

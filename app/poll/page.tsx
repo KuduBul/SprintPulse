@@ -9,6 +9,7 @@ interface PublicPoll {
   title: string;
   description: string | null;
   teamId: string | null;
+  type?: string;
   votingOpen: boolean;
 }
 
@@ -173,7 +174,7 @@ export default function ParticipantLandingPage() {
               marginBottom: 'var(--space-2)',
             }}
           >
-            Join a Poll
+            Join a Session
           </h1>
           {teamName && !showPinForm && (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>

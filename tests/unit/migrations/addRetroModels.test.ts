@@ -158,7 +158,7 @@ describe('Requirement 11.3 — pulse poll creation is unchanged and defaults to 
     pollService = createPollService();
   });
 
-  it('createPoll does not set `type`, so the DB DEFAULT \'pulse\' applies', async () => {
+  it('createPoll defaults to type "pulse" when type is not specified', async () => {
     let createData: Record<string, unknown> | undefined;
 
     mockPrisma.$transaction.mockImplementation(async (fn: any) => {
@@ -185,9 +185,10 @@ describe('Requirement 11.3 — pulse poll creation is unchanged and defaults to 
 
     const result = await pollService.createPoll({ title: 'Pulse Poll' }, MOCK_USER_ID);
 
-    // The service must not override the discriminator — pulse stays pulse via default.
+    // The service sets type to 'pulse' explicitly (or DB default applies) —
+    // either way the resulting poll is always type "pulse".
     expect(createData).toBeDefined();
-    expect(createData!.type).toBeUndefined();
+    expect(createData!.type ?? 'pulse').toBe('pulse');
     expect((result as { type?: string }).type).toBe('pulse');
   });
 });

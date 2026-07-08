@@ -79,7 +79,7 @@ export default function AdminLayout({
               fontSize: 'var(--font-size-sm)',
             }}
           >
-            Polls
+            Sessions
           </Link>
           <Link
             href="/admin/teams"
