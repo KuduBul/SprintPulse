@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { retroService } from '@/lib/services/retroService';
 import { isRetroEnabled } from '@/lib/featureFlags';
-import { withAuth } from '@/middleware/authGuard';
+import { withRateLimit } from '@/middleware/rateLimit';
 import {
   notFoundError,
   internalError,
@@ -20,12 +20,15 @@ export const runtime = 'nodejs';
  *
  * Body: { authorToken, text }
  *
+ * PARTICIPANT-FACING: rate-limited, not auth-gated. Ownership is enforced by
+ * matching the request's `authorToken` against the card's author in the
+ * service (throws NOT_CARD_OWNER → 403).
+ *
  * Phase guard: gather only — service throws WRONG_PHASE otherwise (HTTP 409).
- * Ownership guard: only the card's author may edit — service throws NOT_CARD_OWNER (HTTP 403).
  *
  * Returns 404 when RETRO_ENABLED is false (Requirement 1.2).
  */
-export const PATCH = withAuth(async (request: Request, context: { userId: string; params?: { boardId: string; cardId: string } }) => {
+export const PATCH = withRateLimit(async (request: Request, context: { params?: { boardId: string; cardId: string } }) => {
   if (!isRetroEnabled()) {
     return notFoundError();
   }
@@ -74,12 +77,14 @@ export const PATCH = withAuth(async (request: Request, context: { userId: string
  *
  * Body: { authorToken }
  *
+ * PARTICIPANT-FACING: rate-limited, not auth-gated. Ownership enforced via
+ * authorToken in the service (NOT_CARD_OWNER → 403).
+ *
  * Phase guard: gather only — service throws WRONG_PHASE (HTTP 409).
- * Ownership guard: only the card's author — service throws NOT_CARD_OWNER (HTTP 403).
  *
  * Returns 404 when RETRO_ENABLED is false (Requirement 1.2).
  */
-export const DELETE = withAuth(async (request: Request, context: { userId: string; params?: { boardId: string; cardId: string } }) => {
+export const DELETE = withRateLimit(async (request: Request, context: { params?: { boardId: string; cardId: string } }) => {
   if (!isRetroEnabled()) {
     return notFoundError();
   }

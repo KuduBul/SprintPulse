@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { retroService } from '@/lib/services/retroService';
 import { isRetroEnabled } from '@/lib/featureFlags';
-import { withAuth } from '@/middleware/authGuard';
+import { withRateLimit } from '@/middleware/rateLimit';
 import {
   notFoundError,
   internalError,
@@ -19,13 +19,17 @@ export const runtime = 'nodejs';
  *
  * Body: { cardId, voterToken }
  *
+ * PARTICIPANT-FACING: rate-limited, not auth-gated. The voter is identified by
+ * `voterToken`; the per-user vote cap and one-vote-per-card uniqueness are
+ * enforced server-side against that token.
+ *
  * Phase guard: only permitted while board.phase === "vote" (HTTP 409 WRONG_PHASE).
  * Vote cap: rejects with HTTP 409 VOTE_CAP_EXCEEDED when the voter exceeds votesPerUser.
  * Uniqueness: a duplicate vote on the same card is treated as a no-op (idempotent).
  *
  * Returns 404 when RETRO_ENABLED is false (Requirement 1.2).
  */
-export const POST = withAuth(async (request: Request, context: { userId: string; params?: { boardId: string } }) => {
+export const POST = withRateLimit(async (request: Request, context: { params?: { boardId: string } }) => {
   if (!isRetroEnabled()) {
     return notFoundError();
   }
@@ -68,12 +72,14 @@ export const POST = withAuth(async (request: Request, context: { userId: string;
  *
  * Body: { cardId, voterToken }
  *
+ * PARTICIPANT-FACING: rate-limited, not auth-gated. Identified by voterToken.
+ *
  * Phase guard: only permitted while board.phase === "vote" (HTTP 409 WRONG_PHASE).
  * Removing an absent vote is a no-op (idempotent).
  *
  * Returns 404 when RETRO_ENABLED is false (Requirement 1.2).
  */
-export const DELETE = withAuth(async (request: Request, context: { userId: string; params?: { boardId: string } }) => {
+export const DELETE = withRateLimit(async (request: Request, context: { params?: { boardId: string } }) => {
   if (!isRetroEnabled()) {
     return notFoundError();
   }

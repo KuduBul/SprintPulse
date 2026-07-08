@@ -584,4 +584,95 @@ describe('Retro API Routes', () => {
       expect(body.error.code).toBe('VALIDATION_ERROR');
     });
   });
+
+  // ─── 6. Participant access (no facilitator auth required) ────────────────
+  //
+  // Regression guard: participants are NOT authenticated facilitators. Their
+  // card/vote mutations must succeed without a Supabase session — identity is
+  // the authorToken/voterToken in the body. A prior bug gated these routes
+  // behind withAuth, so every participant mutation returned 401 and their
+  // cards vanished. These tests call the routes with NO userId in context
+  // (simulating an unauthenticated participant) and assert the request reaches
+  // the service rather than being rejected.
+
+  describe('Participant access — no facilitator auth required', () => {
+    beforeEach(() => {
+      process.env[FLAG] = 'true';
+    });
+
+    it('POST /cards succeeds for an unauthenticated participant', async () => {
+      const { POST } = await import('@/app/api/retro/[boardId]/cards/route');
+      mockRetroService.addCard.mockResolvedValue({
+        id: 'card-1',
+        laneId: '00000000-0000-0000-0000-000000000001',
+        text: 'Participant card',
+        authorToken: 'participant-tok',
+        authorName: 'Bob',
+        createdAt: new Date(),
+      });
+
+      const request = createRequest('http://localhost/api/retro/board-1/cards', {
+        laneId: '00000000-0000-0000-0000-000000000001',
+        authorToken: 'participant-tok',
+        authorName: 'Bob',
+        text: 'Participant card',
+      });
+      // No userId in context — an unauthenticated participant.
+      const response = await POST(request, { params: { boardId: 'board-1' } });
+
+      expect(response.status).toBe(201);
+      expect(mockRetroService.addCard).toHaveBeenCalledOnce();
+    });
+
+    it('POST /votes succeeds for an unauthenticated participant', async () => {
+      const { POST } = await import('@/app/api/retro/[boardId]/votes/route');
+      mockRetroService.castVote.mockResolvedValue(undefined);
+
+      const request = createRequest('http://localhost/api/retro/board-1/votes', {
+        cardId: '00000000-0000-0000-0000-000000000001',
+        voterToken: 'participant-tok',
+      });
+      const response = await POST(request, { params: { boardId: 'board-1' } });
+
+      expect(response.status).toBe(204);
+      expect(mockRetroService.castVote).toHaveBeenCalledOnce();
+    });
+
+    it('PATCH /cards/[cardId] succeeds for an unauthenticated participant (own card)', async () => {
+      const { PATCH } = await import('@/app/api/retro/[boardId]/cards/[cardId]/route');
+      mockRetroService.editCard.mockResolvedValue({
+        id: 'card-1',
+        laneId: '00000000-0000-0000-0000-000000000001',
+        text: 'Edited',
+        authorToken: 'participant-tok',
+        authorName: 'Bob',
+        createdAt: new Date(),
+      });
+
+      const request = createRequest(
+        'http://localhost/api/retro/board-1/cards/card-1',
+        { authorToken: 'participant-tok', text: 'Edited' },
+        'PATCH'
+      );
+      const response = await PATCH(request, { params: { boardId: 'board-1', cardId: 'card-1' } });
+
+      expect(response.status).toBe(200);
+      expect(mockRetroService.editCard).toHaveBeenCalledOnce();
+    });
+
+    it('DELETE /cards/[cardId] succeeds for an unauthenticated participant (own card)', async () => {
+      const { DELETE } = await import('@/app/api/retro/[boardId]/cards/[cardId]/route');
+      mockRetroService.deleteCard.mockResolvedValue(undefined);
+
+      const request = createRequest(
+        'http://localhost/api/retro/board-1/cards/card-1',
+        { authorToken: 'participant-tok' },
+        'DELETE'
+      );
+      const response = await DELETE(request, { params: { boardId: 'board-1', cardId: 'card-1' } });
+
+      expect(response.status).toBe(204);
+      expect(mockRetroService.deleteCard).toHaveBeenCalledOnce();
+    });
+  });
 });

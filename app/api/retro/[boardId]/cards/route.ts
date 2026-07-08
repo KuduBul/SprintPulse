@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { retroService } from '@/lib/services/retroService';
 import { isRetroEnabled } from '@/lib/featureFlags';
-import { withAuth } from '@/middleware/authGuard';
+import { withRateLimit } from '@/middleware/rateLimit';
 import {
   notFoundError,
   internalError,
@@ -20,6 +20,12 @@ export const runtime = 'nodejs';
  *
  * Body: { laneId, authorToken, authorName, text }
  *
+ * PARTICIPANT-FACING: participants are not authenticated facilitators — they
+ * are identified by the `authorToken` (a per-board UUID from localStorage),
+ * mirroring the pulse `/respond` flow. This route is therefore rate-limited
+ * rather than auth-gated. Ownership of the card is bound to the authorToken;
+ * edit/delete are validated against it in the service.
+ *
  * Phase guard: only permitted while board.phase === "gather" — the service
  * enforces this and throws WRONG_PHASE otherwise (mapped to HTTP 409).
  *
@@ -27,7 +33,7 @@ export const runtime = 'nodejs';
  * Returns 409 WRONG_PHASE when not in gather phase (Requirement 5.6).
  * Returns 400 for validation errors (empty/over-length text, etc.).
  */
-export const POST = withAuth(async (request: Request, context: { userId: string; params?: { boardId: string } }) => {
+export const POST = withRateLimit(async (request: Request, context: { params?: { boardId: string } }) => {
   if (!isRetroEnabled()) {
     return notFoundError();
   }
