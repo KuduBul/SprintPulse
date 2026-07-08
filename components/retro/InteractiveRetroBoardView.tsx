@@ -604,39 +604,75 @@ function InteractiveBoard(props: InteractiveBoardProps) {
   const sortedLanes = [...board.lanes].sort((a, b) => a.displayOrder - b.displayOrder);
   const manyLanes = sortedLanes.length > 3;
 
+  // Background image comes from the board's own backgroundImage config (the
+  // retro-specific JSON field: { url, opacity, displayMode }). Fall back to the
+  // legacy backgroundImageUrl prop if provided.
+  const bg = board.backgroundImage;
+  const bgUrl = bg?.url ?? backgroundImageUrl ?? null;
+  const bgOpacity = bg ? Math.max(0, Math.min(100, bg.opacity)) / 100 : 1;
+  const bgDisplayMode = bg?.displayMode ?? 'cover';
+
   // We render inline with the same layout patterns as RetroBoardView (column grid)
   // but add interactive elements. Desktop uses the column layout fallback.
   // On mobile with >3 lanes, use horizontal scroll with flex instead of grid.
   return (
     <div
       style={{
-        display: manyLanes ? 'flex' : 'grid',
-        gridTemplateColumns: manyLanes ? undefined : `repeat(${Math.min(sortedLanes.length, 4)}, 1fr)`,
-        overflowX: manyLanes ? 'auto' : undefined,
-        WebkitOverflowScrolling: manyLanes ? 'touch' : undefined,
-        gap: 'var(--space-3)',
-        width: '100%',
-        minHeight: '400px',
-        fontFamily: 'var(--font-family-sans)',
-        paddingBottom: manyLanes ? 'var(--space-2)' : undefined,
+        position: 'relative',
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
       }}
-      role="region"
-      aria-label="Retro board"
     >
-      {sortedLanes.map((lane) => (
+      {/* Background image layer — lazy-loaded, sits behind the columns. */}
+      {bgUrl && (
         <div
-          key={lane.id}
+          aria-hidden="true"
           style={{
-            minWidth: manyLanes ? '280px' : undefined,
-            flex: manyLanes ? '0 0 280px' : undefined,
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `url(${bgUrl})`,
+            backgroundSize: bgDisplayMode,
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            opacity: bgOpacity,
+            zIndex: 0,
+            pointerEvents: 'none',
           }}
-        >
-          <InteractiveLaneColumn
-            lane={lane}
-            {...rest}
-          />
-        </div>
-      ))}
+        />
+      )}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          display: manyLanes ? 'flex' : 'grid',
+          gridTemplateColumns: manyLanes ? undefined : `repeat(${Math.min(sortedLanes.length, 4)}, 1fr)`,
+          overflowX: manyLanes ? 'auto' : undefined,
+          WebkitOverflowScrolling: manyLanes ? 'touch' : undefined,
+          gap: 'var(--space-3)',
+          width: '100%',
+          minHeight: '400px',
+          fontFamily: 'var(--font-family-sans)',
+          padding: bgUrl ? 'var(--space-3)' : undefined,
+          paddingBottom: manyLanes ? 'var(--space-2)' : undefined,
+        }}
+        role="region"
+        aria-label="Retro board"
+      >
+        {sortedLanes.map((lane) => (
+          <div
+            key={lane.id}
+            style={{
+              minWidth: manyLanes ? '280px' : undefined,
+              flex: manyLanes ? '0 0 280px' : undefined,
+            }}
+          >
+            <InteractiveLaneColumn
+              lane={lane}
+              {...rest}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
