@@ -69,6 +69,136 @@ const CUSTOM_OPTION_VALUE = '__custom__';
 const POLL_INTERVAL_MS = 3000;
 
 // --------------------------------------------------------------------------
+// Draft persistence
+//
+// In-progress votes used to live in memory only, so a reload — or a phone
+// discarding a backgrounded tab mid-session — wiped them. That is the retro
+// vote-loss bug: cards added during a session forced participants to reload,
+// and every reload silently cleared their answers. Mirror the draft into
+// localStorage, scoped per poll + session token so a shared device never shows
+// one participant another's answers.
+// --------------------------------------------------------------------------
+
+export interface ParticipantDraft {
+  selections: Record<string, string>;
+  customTexts: Record<string, string>;
+}
+
+export function draftStorageKey(pollId: string, sessionToken: string): string {
+  return `sp_draft_${pollId}_${sessionToken}`;
+}
+
+/** localStorage is unavailable during SSR and throws in Safari private mode. */
+function draftStorage(): Storage | null {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return null;
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+export function loadDraft(pollId: string, sessionToken: string): ParticipantDraft | null {
+  const store = draftStorage();
+  if (!store) return null;
+  try {
+    const raw = store.getItem(draftStorageKey(pollId, sessionToken));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<ParticipantDraft> | null;
+    if (!parsed || typeof parsed !== 'object') return null;
+    return {
+      selections:
+        parsed.selections && typeof parsed.selections === 'object' ? parsed.selections : {},
+      customTexts:
+        parsed.customTexts && typeof parsed.customTexts === 'object' ? parsed.customTexts : {},
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function saveDraft(pollId: string, sessionToken: string, draft: ParticipantDraft): void {
+  const store = draftStorage();
+  if (!store) return;
+  try {
+    store.setItem(draftStorageKey(pollId, sessionToken), JSON.stringify(draft));
+  } catch {
+    // Quota or private mode — failing to store a draft must never break voting.
+  }
+}
+
+export function clearDraft(pollId: string, sessionToken: string): void {
+  const store = draftStorage();
+  if (!store) return;
+  try {
+    store.removeItem(draftStorageKey(pollId, sessionToken));
+  } catch {
+    // ignore
+  }
+}
+
+// --------------------------------------------------------------------------
+// Live board reconciliation
+//
+// The board changes during a live session (cards are added and removed). Keep
+// the card list in state so it can be refreshed, while never dropping a vote
+// on a card that is still part of the board.
+// --------------------------------------------------------------------------
+
+function sortByDisplayOrder(questions: Question[]): Question[] {
+  return [...questions].sort((a, b) => a.displayOrder - b.displayOrder);
+}
+
+function boardSignature(questions: Question[]): string {
+  return questions
+    .map((q) => `${q.id}:${q.displayOrder}:${q.text}:${q.options.join('|')}`)
+    .join('§');
+}
+
+/** Drop entry keys that are no longer on the board; same object if unchanged. */
+function pruneToBoard<T>(previous: Record<string, T>, ids: Set<string>): Record<string, T> {
+  let changed = false;
+  const next: Record<string, T> = {};
+  for (const [key, value] of Object.entries(previous)) {
+    if (ids.has(key)) {
+      next[key] = value;
+    } else {
+      changed = true;
+    }
+  }
+  return changed ? next : previous;
+}
+
+/**
+ * Drop selections whose card was removed, and selections whose chosen option no
+ * longer exists on that card (a renamed/removed option would otherwise submit a
+ * stale label that the results view cannot count).
+ */
+function pruneSelectionsToBoard(
+  previous: Record<string, string>,
+  board: Question[],
+): Record<string, string> {
+  const byId = new Map(board.map((q) => [q.id, q]));
+  let changed = false;
+  const next: Record<string, string> = {};
+
+  for (const [questionId, selection] of Object.entries(previous)) {
+    const question = byId.get(questionId);
+    if (!question) {
+      changed = true;
+      continue;
+    }
+    if (selection === CUSTOM_OPTION_VALUE || question.options.includes(selection)) {
+      next[questionId] = selection;
+    } else {
+      changed = true;
+    }
+  }
+
+  return changed ? next : previous;
+}
+
+// --------------------------------------------------------------------------
 // Component
 // --------------------------------------------------------------------------
 
@@ -93,10 +223,13 @@ export function ParticipantForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   // Facilitator state (polled)
   const [facilitatorState, setFacilitatorState] = useState<FacilitatorState>(initialFacilitatorState);
+  // The card list is live: the facilitator adds/removes cards mid-session.
+  const [questions, setQuestions] = useState<Question[]>(() => sortByDisplayOrder(poll.questions));
   // Viewport
   const [isMobile, setIsMobile] = useState(false);
 
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const draftRestoredRef = useRef(false);
 
   // --------------------------------------------------------------------------
   // Responsive detection
@@ -112,7 +245,54 @@ export function ParticipantForm({
   }, []);
 
   // --------------------------------------------------------------------------
-  // Poll facilitator state every 3 seconds
+  // Live board + draft persistence
+  // --------------------------------------------------------------------------
+
+  /**
+   * Apply the board sent by the server. Votes already cast on cards that are
+   * still present are kept; votes for cards that were removed (or whose chosen
+   * option no longer exists) are dropped so nothing stale is ever submitted.
+   */
+  const applyBoard = useCallback((incoming: Question[]) => {
+    const next = sortByDisplayOrder(incoming);
+    const ids = new Set(next.map((q) => q.id));
+
+    setQuestions((prev) => (boardSignature(prev) === boardSignature(next) ? prev : next));
+    setSelections((prev) => pruneSelectionsToBoard(prev, next));
+    setCustomTexts((prev) => pruneToBoard(prev, ids));
+    setErrors((prev) => pruneToBoard(prev, ids));
+  }, []);
+
+  // Stay in step if the parent re-renders with a refreshed poll.
+  useEffect(() => {
+    applyBoard(poll.questions);
+  }, [poll.questions, applyBoard]);
+
+  // Restore any draft saved before a reload / mobile tab eviction.
+  useEffect(() => {
+    const draft = loadDraft(pollId, sessionToken);
+    if (draft) {
+      setSelections(draft.selections);
+      setCustomTexts(draft.customTexts);
+    }
+  }, [pollId, sessionToken]);
+
+  // Persist the draft as the participant votes. The first pass is skipped so an
+  // as-yet-unrestored empty state can never overwrite a stored draft.
+  useEffect(() => {
+    if (!draftRestoredRef.current) {
+      draftRestoredRef.current = true;
+      return;
+    }
+    if (isSubmitted) {
+      clearDraft(pollId, sessionToken);
+      return;
+    }
+    saveDraft(pollId, sessionToken, { selections, customTexts });
+  }, [selections, customTexts, isSubmitted, pollId, sessionToken]);
+
+  // --------------------------------------------------------------------------
+  // Poll facilitator state and the board every 3 seconds
   // --------------------------------------------------------------------------
 
   const pollFacilitatorState = useCallback(async () => {
@@ -123,11 +303,16 @@ export function ParticipantForm({
         if (data.facilitatorState) {
           setFacilitatorState(data.facilitatorState);
         }
+        // Cards added or removed during the session must reach participants
+        // without a reload: reloading used to cost them their answers.
+        if (Array.isArray(data.questions)) {
+          applyBoard(data.questions as Question[]);
+        }
       }
     } catch {
       // Silently ignore polling errors
     }
-  }, [pollId]);
+  }, [pollId, applyBoard]);
 
   useEffect(() => {
     // Don't poll if already submitted
@@ -176,7 +361,7 @@ export function ParticipantForm({
   function validate(): boolean {
     const newErrors: Record<string, string> = {};
 
-    for (const question of poll.questions) {
+    for (const question of questions) {
       const selection = selections[question.id];
       if (!selection) {
         newErrors[question.id] = 'Please select an option';
@@ -199,7 +384,7 @@ export function ParticipantForm({
     setIsSubmitting(true);
     setSubmitError(null);
 
-    const answers: Answer[] = poll.questions.map((question) => {
+    const answers: Answer[] = questions.map((question) => {
       const selection = selections[question.id];
       const answer: Answer = {
         questionId: question.id,
@@ -228,7 +413,7 @@ export function ParticipantForm({
 
   function handleCopyAnswers() {
     const textParts: string[] = [];
-    for (const question of poll.questions) {
+    for (const question of questions) {
       const selection = selections[question.id];
       if (selection === CUSTOM_OPTION_VALUE) {
         const customText = customTexts[question.id] || '';
@@ -295,11 +480,9 @@ export function ParticipantForm({
   // Render
   // --------------------------------------------------------------------------
 
-  const sortedQuestions = [...poll.questions].sort(
-    (a, b) => a.displayOrder - b.displayOrder
-  );
+  const sortedQuestions = questions;
 
-  const hasCanvasPositions = poll.questions.some((q) => q.position !== null);
+  const hasCanvasPositions = questions.some((q) => q.position !== null);
   const useCanvasLayout = !isMobile && hasCanvasPositions;
 
   return (
@@ -334,7 +517,7 @@ export function ParticipantForm({
       {/* Questions */}
       {useCanvasLayout ? (
         <CanvasLayout
-          questions={poll.questions}
+          questions={questions}
           backgroundImageUrl={poll.backgroundImageUrl}
           selections={selections}
           customTexts={customTexts}
