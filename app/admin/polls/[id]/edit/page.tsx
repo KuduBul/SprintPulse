@@ -119,8 +119,6 @@ export default function EditPollPage() {
     }
     if (result.data) setPoll(result.data as PollData);
 
-    // Return to the sessions list after a successful save.
-    router.push('/admin');
   }
 
   function resetQuestionForm() {

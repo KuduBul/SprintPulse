@@ -179,6 +179,8 @@ export function createPollService(): PollService {
             description: existing.description,
             backgroundImageUrl: existing.backgroundImageUrl,
             userId,
+            teamId: existing.teamId,
+            type: existing.type,
             accessToken,
             facilitatorState: DEFAULT_FACILITATOR_STATE as unknown as Prisma.InputJsonValue,
           },
