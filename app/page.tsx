@@ -169,7 +169,7 @@ export default function Home() {
             color: 'var(--color-text-muted)',
           }}
         >
-          Facilitators create and run polls. Participants join to vote.
+          Facilitators create and run polls. Participants join to submit responses.
         </p>
         <div
           style={{

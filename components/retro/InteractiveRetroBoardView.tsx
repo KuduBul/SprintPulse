@@ -79,7 +79,16 @@ function useOptimisticBoard(serverBoard: BoardView) {
   const boardFingerprint = JSON.stringify({
     id: serverBoard.id,
     phase: serverBoard.phase,
-    lanes: serverBoard.lanes.map((l) => ({ id: l.id, cc: l.cardCount, cards: l.cards.map((c) => c.id + c.text + c.voteCount) })),
+    lanes: serverBoard.lanes.map((l) => ({
+      id: l.id,
+      cc: l.cardCount,
+      cards: l.cards.map((c) => ({
+        id: c.id,
+        text: c.text,
+        voteCount: c.voteCount,
+        hasVoted: c.hasVoted,
+      })),
+    })),
   });
 
   if (boardFingerprint !== prevBoardRef.current) {
@@ -91,10 +100,31 @@ function useOptimisticBoard(serverBoard: BoardView) {
       optimistic.votedCardIds.size > 0 ||
       optimistic.unvotedCardIds.size > 0
     ) {
-      // For everything except addedCards, clear immediately on fingerprint change.
-      // For addedCards, clear only if the server response already includes them
-      // (detected by checking if the server's total visible card count grew).
-      // This prevents clearing an optimistic card that the server hasn't seen yet.
+      // Reconcile vote intents against server truth individually. A changed
+      // board fingerprint may be caused by another participant's vote or by a
+      // stale read, so do not clear a pending vote until this card explicitly
+      // reports the requested hasVoted value.
+      const serverCardsById = new Map(
+        serverBoard.lanes.flatMap((lane) => lane.cards).map((card) => [card.id, card])
+      );
+      const pendingVotedCardIds = new Set(
+        [...optimistic.votedCardIds].filter((cardId) => {
+          const serverCard = serverCardsById.get(cardId);
+          return !serverCard || !serverCard.hasVoted;
+        })
+      );
+      const pendingUnvotedCardIds = new Set(
+        [...optimistic.unvotedCardIds].filter((cardId) => {
+          const serverCard = serverCardsById.get(cardId);
+          return !serverCard || serverCard.hasVoted;
+        })
+      );
+      const pendingVoteState = {
+        votedCardIds: pendingVotedCardIds,
+        unvotedCardIds: pendingUnvotedCardIds,
+      };
+      const hasPendingVoteState =
+        pendingVotedCardIds.size > 0 || pendingUnvotedCardIds.size > 0;
       const hasNonAddOptimistic =
         optimistic.deletedCardIds.size > 0 ||
         optimistic.editedCards.size > 0 ||
@@ -102,7 +132,10 @@ function useOptimisticBoard(serverBoard: BoardView) {
         optimistic.unvotedCardIds.size > 0;
 
       if (hasNonAddOptimistic && optimistic.addedCards.size === 0) {
-        setOptimistic(emptyOptimisticState());
+        setOptimistic({
+          ...emptyOptimisticState(),
+          ...pendingVoteState,
+        });
       } else if (optimistic.addedCards.size > 0) {
         // Check if the server now includes the cards we added optimistically
         // by comparing text content. If a match is found, the card propagated.
@@ -113,17 +146,25 @@ function useOptimisticBoard(serverBoard: BoardView) {
           (oc) => serverCardTexts.has(oc.text)
         );
         if (allOptimisticConfirmed) {
-          setOptimistic(emptyOptimisticState());
-        } else if (hasNonAddOptimistic) {
-          // Clear non-add optimistic state but keep addedCards that aren't confirmed
+          setOptimistic({
+            ...emptyOptimisticState(),
+            ...pendingVoteState,
+          });
+        } else if (hasNonAddOptimistic || hasPendingVoteState) {
+          // Clear completed non-add operations but keep unconfirmed cards and
+          // vote intents that the latest server snapshot has not acknowledged.
           setOptimistic((prev) => ({
             ...emptyOptimisticState(),
             addedCards: prev.addedCards,
+            ...pendingVoteState,
           }));
         }
-        // else: keep all optimistic state (cards not confirmed by server yet)
+        // Otherwise keep all optimistic state while added cards propagate.
       } else {
-        setOptimistic(emptyOptimisticState());
+        setOptimistic({
+          ...emptyOptimisticState(),
+          ...pendingVoteState,
+        });
       }
     }
   }
@@ -247,8 +288,8 @@ function applyOptimistic(serverBoard: BoardView, optimistic: OptimisticState): B
         .map((c) => {
           const editedText = optimistic.editedCards.get(c.id);
           const voteAdjust =
-            (optimistic.votedCardIds.has(c.id) ? 1 : 0) -
-            (optimistic.unvotedCardIds.has(c.id) ? 1 : 0);
+            (optimistic.votedCardIds.has(c.id) && !c.hasVoted ? 1 : 0) -
+            (optimistic.unvotedCardIds.has(c.id) && c.hasVoted ? 1 : 0);
           return {
             ...c,
             text: editedText !== undefined ? editedText : c.text,
@@ -298,16 +339,6 @@ export function InteractiveRetroBoardView({
 
   const optimisticHook = useOptimisticBoard(serverBoard);
   const mergedBoard = applyOptimistic(serverBoard, optimisticHook.optimistic);
-
-  // Track vote count for cap enforcement on the client side
-  const currentVoteCount = serverBoard.lanes.reduce((total, lane) => {
-    return total + lane.cards.filter((c) =>
-      optimisticHook.optimistic.votedCardIds.has(c.id) ||
-      // Count cards the user has already voted on (server truth)
-      // We approximate by checking if it's own and voted
-      false
-    ).length;
-  }, 0);
 
   // ---- Card Add ----
   const handleAddCard = useCallback(
@@ -753,34 +784,39 @@ function InteractiveLaneColumn({
             ? `${lane.color}18`
             : 'var(--color-bg-primary)',
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           justifyContent: 'space-between',
           minHeight: '48px',
         }}
       >
         <h3
           style={{
+            flex: '1 1 auto',
+            minWidth: 0,
             fontSize: 'var(--font-size-sm)',
             fontWeight: 'var(--font-weight-semibold)',
             color: 'var(--color-text-primary)',
             margin: 0,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            overflow: 'visible',
+            textOverflow: 'clip',
+            whiteSpace: 'normal',
+            overflowWrap: 'anywhere',
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             gap: 'var(--space-2)',
           }}
         >
           {lane.icon && (
-            <span aria-label={`Lane icon: ${lane.icon}`} role="img">
+            <span aria-label={`Lane icon: ${lane.icon}`} role="img" style={{ flexShrink: 0 }}>
               {lane.icon}
             </span>
           )}
-          {lane.title}
+          <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{lane.title}</span>
         </h3>
         <span
           style={{
+            flexShrink: 0,
+            marginLeft: 'var(--space-2)',
             fontSize: 'var(--font-size-xs)',
             color: 'var(--color-text-muted)',
             backgroundColor: 'var(--color-bg-tertiary)',
@@ -999,8 +1035,9 @@ function InteractiveCardView({
   const canDelete = isGather && card.isOwn && participantToken;
   const showVotes = isVote || isClosed;
 
-  // Determine if the user has voted on this card (optimistically tracked)
-  const hasVoted = isOptimisticVoted && !isOptimisticUnvoted;
+  // Server truth remains authoritative after a refresh; optimistic state covers
+  // only the short interval before the server reflects the mutation.
+  const hasVoted = (card.hasVoted || isOptimisticVoted) && !isOptimisticUnvoted;
   const canVote = isVote && participantToken && !hasVoted && !atVoteCap;
   const canUnvote = isVote && participantToken && hasVoted;
 

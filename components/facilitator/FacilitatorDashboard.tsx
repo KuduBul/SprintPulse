@@ -145,7 +145,7 @@ export function FacilitatorDashboard({ pollId, poll, questions }: FacilitatorDas
         // Announce state change for screen readers
         const changes: string[] = [];
         if (statePatch.votingOpen !== undefined) {
-          changes.push(statePatch.votingOpen ? 'Voting opened' : 'Voting closed');
+          changes.push(statePatch.votingOpen ? 'Responses opened' : 'Responses closed');
         }
         if (statePatch.liveResults !== undefined) {
           changes.push(statePatch.liveResults ? 'Live results enabled' : 'Live results disabled');
@@ -321,12 +321,12 @@ export function FacilitatorDashboard({ pollId, poll, questions }: FacilitatorDas
             marginBottom: 'var(--space-6)',
           }}
         >
-          {/* Voting Toggle */}
+          {/* Response collection toggle */}
           <button
             onClick={() => updateState({ votingOpen: !facilitatorState.votingOpen })}
             disabled={updatingState}
             aria-pressed={facilitatorState.votingOpen}
-            aria-label={facilitatorState.votingOpen ? 'Close voting' : 'Open voting'}
+            aria-label={facilitatorState.votingOpen ? 'Close responses' : 'Open responses'}
             style={{
               padding: 'var(--space-3) var(--space-4)',
               backgroundColor: facilitatorState.votingOpen
@@ -341,7 +341,7 @@ export function FacilitatorDashboard({ pollId, poll, questions }: FacilitatorDas
               opacity: updatingState ? 0.7 : 1,
             }}
           >
-            {facilitatorState.votingOpen ? '✓ Voting Open' : '✗ Voting Closed'}
+            {facilitatorState.votingOpen ? '✓ Responses Open' : '✗ Responses Closed'}
           </button>
 
           {/* Live Results Toggle */}

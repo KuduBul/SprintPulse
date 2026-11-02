@@ -145,7 +145,7 @@ export function ParticipantForm({
   // Derived state
   // --------------------------------------------------------------------------
 
-  const votingClosed = !facilitatorState.votingOpen;
+  const responsesClosed = !facilitatorState.votingOpen;
 
   // --------------------------------------------------------------------------
   // Handlers
@@ -193,7 +193,7 @@ export function ParticipantForm({
   }
 
   async function handleSubmit() {
-    if (votingClosed || isSubmitting) return;
+    if (responsesClosed || isSubmitting) return;
     if (!validate()) return;
 
     setIsSubmitting(true);
@@ -304,8 +304,8 @@ export function ParticipantForm({
 
   return (
     <div style={{ position: 'relative' }}>
-      {/* Voting closed banner */}
-      {votingClosed && (
+      {/* Response collection closed banner */}
+      {responsesClosed && (
         <div
           role="alert"
           aria-live="assertive"
@@ -326,7 +326,7 @@ export function ParticipantForm({
               fontWeight: 'var(--font-weight-semibold)',
             }}
           >
-            Voting has been closed by the facilitator
+            Response collection has been closed by the facilitator
           </p>
         </div>
       )}
@@ -341,7 +341,7 @@ export function ParticipantForm({
           errors={errors}
           onOptionSelect={handleOptionSelect}
           onCustomTextChange={handleCustomTextChange}
-          disabled={votingClosed}
+          disabled={responsesClosed}
         />
       ) : (
         <ListLayout
@@ -352,7 +352,7 @@ export function ParticipantForm({
           errors={errors}
           onOptionSelect={handleOptionSelect}
           onCustomTextChange={handleCustomTextChange}
-          disabled={votingClosed}
+          disabled={responsesClosed}
         />
       )}
 
@@ -389,11 +389,11 @@ export function ParticipantForm({
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={votingClosed || isSubmitting}
+          disabled={responsesClosed || isSubmitting}
           aria-busy={isSubmitting}
           style={{
             padding: 'var(--space-3) var(--space-8)',
-            backgroundColor: votingClosed
+            backgroundColor: responsesClosed
               ? 'var(--color-neutral-300)'
               : 'var(--color-primary-600)',
             color: 'var(--color-text-on-primary)',
@@ -401,8 +401,8 @@ export function ParticipantForm({
             borderRadius: 'var(--radius-md)',
             fontSize: 'var(--font-size-base)',
             fontWeight: 'var(--font-weight-semibold)',
-            cursor: votingClosed || isSubmitting ? 'not-allowed' : 'pointer',
-            opacity: votingClosed || isSubmitting ? 0.7 : 1,
+            cursor: responsesClosed || isSubmitting ? 'not-allowed' : 'pointer',
+            opacity: responsesClosed || isSubmitting ? 0.7 : 1,
             display: 'flex',
             alignItems: 'center',
             gap: 'var(--space-2)',
@@ -412,7 +412,7 @@ export function ParticipantForm({
           {isSubmitting ? 'Submitting...' : 'Submit'}
         </button>
 
-        {votingClosed && (
+        {responsesClosed && (
           <button
             type="button"
             onClick={handleCopyAnswers}

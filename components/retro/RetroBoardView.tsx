@@ -432,34 +432,39 @@ function LaneColumn({ lane, phase, isMobile = false }: LaneColumnProps) {
             ? `${lane.color}18`
             : 'var(--color-bg-primary)',
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           justifyContent: 'space-between',
           minHeight: isMobile ? '48px' : 'auto',
         }}
       >
         <h3
           style={{
+            flex: '1 1 auto',
+            minWidth: 0,
             fontSize: isMobile ? 'var(--font-size-base)' : 'var(--font-size-sm)',
             fontWeight: 'var(--font-weight-semibold)',
             color: 'var(--color-text-primary)',
             margin: 0,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            overflow: 'visible',
+            textOverflow: 'clip',
+            whiteSpace: 'normal',
+            overflowWrap: 'anywhere',
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             gap: 'var(--space-2)',
           }}
         >
           {lane.icon && (
-            <span aria-label={`Lane icon: ${lane.icon}`} role="img">
+            <span aria-label={`Lane icon: ${lane.icon}`} role="img" style={{ flexShrink: 0 }}>
               {lane.icon}
             </span>
           )}
-          {lane.title}
+          <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{lane.title}</span>
         </h3>
         <span
           style={{
+            flexShrink: 0,
+            marginLeft: 'var(--space-2)',
             fontSize: 'var(--font-size-xs)',
             color: 'var(--color-text-muted)',
             backgroundColor: 'var(--color-bg-tertiary)',

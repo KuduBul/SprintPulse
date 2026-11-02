@@ -130,11 +130,11 @@ When the facilitator closes the retro:
 
 ## What Happens During a Live Session
 
-### Voting Opens and Closes
+### Response Collection Opens and Closes
 
-- The facilitator controls when voting is open
-- If voting is **closed**, you'll see: "Voting is currently closed"
-- If voting **closes while you're filling in the form**, the submit button is disabled
+- The facilitator controls when response collection is open
+- If response collection is **closed**, you'll see: "Response collection is currently closed"
+- If response collection **closes while you're filling in the form**, the submit button is disabled
 
 ### Results
 
@@ -148,7 +148,7 @@ When the facilitator closes the retro:
 ## Tips
 
 - Get your team PIN from your facilitator before the session starts
-- Answer promptly once voting opens — the facilitator may close it at any time
+- Answer promptly once response collection opens — the facilitator may close it at any time
 - Use the "Custom" option to share unique perspectives
 - If you lose connection, the app retries automatically
 
@@ -159,7 +159,7 @@ When the facilitator closes the retro:
 | Issue | Solution |
 |-------|----------|
 | "PIN not recognized" | Double-check the PIN with your facilitator |
-| "Voting is currently closed" | Wait for the facilitator to open voting |
+| "Response collection is currently closed" | Wait for the facilitator to open response collection |
 | "Already submitted" | Click "check again" or refresh after a reset |
 | Page won't load | Check your internet connection and refresh |
 | Submit button disabled | Ensure all questions are answered |

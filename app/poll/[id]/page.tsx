@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, FormEvent } from 'react';
+import { useState, useEffect, useCallback, useRef, FormEvent } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useSessionToken } from '@/lib/hooks/useSessionToken';
 import { useParticipantToken } from '@/lib/hooks/useParticipantToken';
@@ -162,7 +162,7 @@ export default function ParticipantPollPage() {
     );
   }
 
-  // Voting closed state — only applies to pulse polls, not retro
+  // Response collection closed state — only applies to pulse polls, not retro
   if (poll && poll.type !== 'retro' && !poll.facilitatorState.votingOpen) {
     return (
       <main id="main-content" style={{ padding: 'var(--space-8)', textAlign: 'center' }}>
@@ -181,7 +181,7 @@ export default function ParticipantPollPage() {
           }}
         >
           <p style={{ color: 'var(--color-warning-800)', fontWeight: 'var(--font-weight-semibold)' }}>
-            Voting is currently closed
+            Response collection is currently closed
           </p>
         </div>
       </main>
@@ -369,9 +369,13 @@ function RetroParticipantView({ pollId, title, backgroundImageUrl }: { pollId: s
   const [boardId, setBoardId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
+  const fetchSequenceRef = useRef(0);
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch the retro board for this poll using the dedicated by-poll lookup
   const fetchBoard = useCallback(async () => {
+    const requestId = ++fetchSequenceRef.current;
+
     try {
       const participant = getParticipant(pollId);
       const token = participant?.token ?? '';
@@ -381,14 +385,36 @@ function RetroParticipantView({ pollId, title, backgroundImageUrl }: { pollId: s
       });
       if (res.ok) {
         const data = await res.json();
+        // A slower request must not overwrite a newer board snapshot.
+        if (requestId !== fetchSequenceRef.current) return;
         setBoard(data);
         setBoardId(data.id);
       }
     } catch {
       // ignore
     }
-    setLoading(false);
+
+    if (requestId === fetchSequenceRef.current) {
+      setLoading(false);
+    }
   }, [pollId, getParticipant]);
+
+  useEffect(() => {
+    // Invalidate work from a previous poll before starting this poll's fetches.
+    fetchSequenceRef.current += 1;
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = null;
+    }
+
+    return () => {
+      fetchSequenceRef.current += 1;
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current);
+        refreshTimerRef.current = null;
+      }
+    };
+  }, [pollId]);
 
   useEffect(() => {
     // Only fetch board once participant has a token
@@ -526,18 +552,13 @@ function RetroParticipantView({ pollId, title, backgroundImageUrl }: { pollId: s
           boardTitle={title}
           participantPollId={pollId}
           onMutate={() => {
-            // Small delay to allow the write to propagate through PgBouncer's
-            // connection pool before reading back. Without this, the GET may hit
-            // a different backend connection that hasn't seen the INSERT yet,
-            // returning stale data that clears the optimistic card.
-            setTimeout(() => {
-              const participant = getParticipant(pollId);
-              const token = participant?.token ?? '';
-              fetch(`/api/retro/by-poll/${pollId}?role=participant&participantToken=${token}`, {
-                cache: 'no-store',
-              })
-                .then(r => r.ok ? r.json() : null)
-                .then(data => { if (data) setBoard(data); });
+            // Allow the write to propagate before the ordered board refresh.
+            if (refreshTimerRef.current) {
+              clearTimeout(refreshTimerRef.current);
+            }
+            refreshTimerRef.current = setTimeout(() => {
+              refreshTimerRef.current = null;
+              fetchBoard();
             }, 500);
           }}
         />

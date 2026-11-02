@@ -171,7 +171,7 @@ Position questions visually on a background image. The canvas editor appears on 
 
 | Control | Default | Description |
 |---------|---------|-------------|
-| **Voting** | Closed | Opens/closes participant submissions |
+| **Responses** | Closed | Opens/closes participant submissions |
 | **Live Results** | Off | Auto-refreshes results every 3 seconds |
 | **Anonymisation** | On | Hides participant names in results |
 
@@ -183,15 +183,15 @@ Position questions visually on a background image. The canvas editor appears on 
 | **COUNTS** | Aggregated totals and percentages per option |
 | **DETAILS** | Full results including free-text responses and participant names for all response types |
 
-When **DETAILS** is selected and **Anonymisation** is off, participant names are shown for both custom free-text responses and predefined option selections (e.g., you can see who voted for each option).
+When **DETAILS** is selected and **Anonymisation** is off, participant names are shown for both custom free-text responses and predefined option selections (e.g., you can see which participants selected each option).
 
 ### Typical Session Flow
 
 1. Create team → create poll → add questions → position on canvas
 2. Share the **team PIN** with participants
-3. Open the facilitator dashboard → **Open voting**
+3. Open the facilitator dashboard → **Open responses**
 4. Monitor submissions via live statistics
-5. **Close voting** when ready
+5. **Close responses** when ready
 6. **Reveal results** progressively: HIDDEN → COUNTS → DETAILS
 
 ### Testing Your Poll
