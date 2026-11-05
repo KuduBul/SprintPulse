@@ -163,7 +163,14 @@ export function createPollService(): PollService {
     async clonePoll(id: string, userId: string): Promise<Poll | null> {
       const existing = await prisma.poll.findFirst({
         where: { id, userId, isDeleted: false },
-        include: { questions: true },
+        include: {
+          questions: true,
+          // For retro polls, pull the board structure (config + lanes) so it can
+          // be deep-copied. Cards, votes, and action items are intentionally
+          // NOT cloned — a clone is a fresh, reusable board template, mirroring
+          // how pulse clones copy questions but start with zero responses.
+          retroBoard: { include: { lanes: { orderBy: { displayOrder: 'asc' } } } },
+        },
       });
 
       if (!existing) {
@@ -182,11 +189,13 @@ export function createPollService(): PollService {
             teamId: existing.teamId,
             type: existing.type,
             accessToken,
-            facilitatorState: DEFAULT_FACILITATOR_STATE as unknown as Prisma.InputJsonValue,
+            // Preserve the original's facilitator configuration (voting/reveal/
+            // anonymise/liveResults) so a clone behaves like the source.
+            facilitatorState: existing.facilitatorState as Prisma.InputJsonValue,
           },
         });
 
-        // Duplicate all questions
+        // Duplicate all questions (pulse polls)
         if (existing.questions.length > 0) {
           await tx.question.createMany({
             data: existing.questions.map((q: Question) => ({
@@ -198,6 +207,54 @@ export function createPollService(): PollService {
               displayOrder: q.displayOrder,
             })),
           });
+        }
+
+        // Deep-copy retro board structure (retro polls). Resets phase to
+        // "gather" and starts with no cards/votes/action items.
+        if (existing.retroBoard) {
+          const sourceBoard = existing.retroBoard;
+
+          const clonedBoard = await tx.retroBoard.create({
+            data: {
+              pollId: cloned.id,
+              template: sourceBoard.template,
+              phase: 'gather',
+              votesPerUser: sourceBoard.votesPerUser,
+              backgroundImage:
+                sourceBoard.backgroundImage === null
+                  ? Prisma.JsonNull
+                  : (sourceBoard.backgroundImage as Prisma.InputJsonValue),
+            },
+          });
+
+          if (sourceBoard.lanes.length > 0) {
+            await tx.retroLane.createMany({
+              data: sourceBoard.lanes.map((lane) => ({
+                boardId: clonedBoard.id,
+                title: lane.title,
+                displayOrder: lane.displayOrder,
+                position: lane.position as Prisma.InputJsonValue ?? undefined,
+                icon: lane.icon,
+                color: lane.color,
+              })),
+            });
+          }
+
+          await auditLogger.log(
+            {
+              pollId: cloned.id,
+              action: 'RETRO_BOARD_CREATED',
+              actor: userId,
+              metadata: {
+                boardId: clonedBoard.id,
+                template: clonedBoard.template,
+                laneCount: sourceBoard.lanes.length,
+                votesPerUser: clonedBoard.votesPerUser,
+                clonedFromBoardId: sourceBoard.id,
+              },
+            },
+            tx,
+          );
         }
 
         await auditLogger.log(

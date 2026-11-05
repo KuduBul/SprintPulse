@@ -234,7 +234,8 @@ describe('PollService', () => {
 
       const result = await pollService.updatePoll('poll-1', { title: 'Updated Title' }, MOCK_USER_ID);
 
-      expect(result.title).toBe('Updated Title');
+      expect(result).not.toBeNull();
+      expect(result!.title).toBe('Updated Title');
     });
 
     it('updates poll description and backgroundImageUrl', async () => {
@@ -266,8 +267,9 @@ describe('PollService', () => {
         backgroundImageUrl: 'https://example.com/img.png',
       }, MOCK_USER_ID);
 
-      expect(result.description).toBe('New desc');
-      expect(result.backgroundImageUrl).toBe('https://example.com/img.png');
+      expect(result).not.toBeNull();
+      expect(result!.description).toBe('New desc');
+      expect(result!.backgroundImageUrl).toBe('https://example.com/img.png');
     });
 
     it('logs POLL_UPDATED via audit logger', async () => {
@@ -403,8 +405,9 @@ describe('PollService', () => {
 
       const result = await pollService.clonePoll('poll-original', MOCK_USER_ID);
 
-      expect(result.title).toBe('Original Poll (Copy)');
-      expect(result.id).toBe('poll-clone');
+      expect(result).not.toBeNull();
+      expect(result!.title).toBe('Original Poll (Copy)');
+      expect(result!.id).toBe('poll-clone');
     });
 
     it('duplicates all questions from the original poll', async () => {
@@ -467,18 +470,21 @@ describe('PollService', () => {
       expect(createManyData[1].allowCustom).toBe(true);
     });
 
-    it('cloned poll has default facilitator state (not copied from original)', async () => {
+    it('cloned poll preserves the original facilitator state', async () => {
+      const originalState = { _v: 1, votingOpen: true, liveResults: true, anonymise: false, revealStage: 'DETAILS' };
       const originalPoll = {
         id: 'poll-original',
         title: 'Original',
         description: null,
         backgroundImageUrl: null,
-        facilitatorState: { _v: 1, votingOpen: true, liveResults: true, anonymise: false, revealStage: 'DETAILS' },
+        facilitatorState: originalState,
         isDeleted: false,
         createdAt: new Date(),
         updatedAt: new Date(),
         questions: [],
+        retroBoard: null,
       };
+      mockPrisma.poll.findFirst.mockResolvedValue(originalPoll);
 
       let createArgs: any;
       mockPrisma.$transaction.mockImplementation(async (fn: any) => {
@@ -502,13 +508,9 @@ describe('PollService', () => {
 
       await pollService.clonePoll('poll-original', MOCK_USER_ID);
 
-      expect(createArgs.facilitatorState).toEqual({
-        _v: 1,
-        votingOpen: false,
-        liveResults: false,
-        anonymise: true,
-        revealStage: 'HIDDEN',
-      });
+      // The clone should carry over the source's voting/reveal/anonymise config
+      // rather than resetting to defaults.
+      expect(createArgs.facilitatorState).toEqual(originalState);
     });
 
     it('logs POLL_CLONED via audit logger with source and new poll IDs', async () => {
@@ -589,6 +591,174 @@ describe('PollService', () => {
       await pollService.clonePoll('poll-original', MOCK_USER_ID);
 
       expect(questionCreateManyCalled).toBe(false);
+    });
+  });
+
+  describe('clonePoll — retro board structure', () => {
+    // A retro poll carries a 1:1 RetroBoard with lanes. Cloning should deep-copy
+    // the board config and lanes (structure only) and must NOT copy cards/votes.
+    function makeRetroOriginal() {
+      return {
+        id: 'retro-original',
+        title: 'Sprint Retro',
+        description: 'Last sprint',
+        backgroundImageUrl: null,
+        facilitatorState: { _v: 1, votingOpen: false, liveResults: false, anonymise: true, revealStage: 'HIDDEN' },
+        type: 'retro',
+        teamId: 'team-1',
+        isDeleted: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userId: MOCK_USER_ID,
+        questions: [],
+        retroBoard: {
+          id: 'board-original',
+          pollId: 'retro-original',
+          template: 'start_stop_continue',
+          phase: 'closed',
+          votesPerUser: 5,
+          backgroundImage: { url: 'https://example.com/bg.jpg', opacity: 80, displayMode: 'cover' },
+          lanes: [
+            { id: 'lane-1', boardId: 'board-original', title: 'Start', displayOrder: 0, position: null, icon: '🚀', color: '#0a0' },
+            { id: 'lane-2', boardId: 'board-original', title: 'Stop', displayOrder: 1, position: { x: 1, y: 2, width: 3, height: 4 }, icon: '🛑', color: '#a00' },
+          ],
+        },
+      };
+    }
+
+    function mockRetroTransaction(captured: {
+      boardData?: any;
+      laneData?: any;
+    }) {
+      mockPrisma.$transaction.mockImplementation(async (fn: any) => {
+        const tx = {
+          poll: {
+            create: vi.fn().mockResolvedValue({ id: 'retro-clone', title: 'Sprint Retro (Copy)', type: 'retro' }),
+          },
+          question: {
+            createMany: vi.fn(),
+          },
+          retroBoard: {
+            create: vi.fn().mockImplementation((args: any) => {
+              captured.boardData = args.data;
+              return { id: 'board-clone', ...args.data };
+            }),
+          },
+          retroLane: {
+            createMany: vi.fn().mockImplementation((args: any) => {
+              captured.laneData = args.data;
+              return { count: args.data.length };
+            }),
+          },
+          auditLog: {
+            create: vi.fn(),
+          },
+        };
+        return fn(tx);
+      });
+    }
+
+    it('deep-copies the board config with phase reset to "gather"', async () => {
+      mockPrisma.poll.findFirst.mockResolvedValue(makeRetroOriginal());
+      const captured: { boardData?: any; laneData?: any } = {};
+      mockRetroTransaction(captured);
+
+      const result = await pollService.clonePoll('retro-original', MOCK_USER_ID);
+
+      expect(result).not.toBeNull();
+      expect(captured.boardData.pollId).toBe('retro-clone');
+      expect(captured.boardData.template).toBe('start_stop_continue');
+      expect(captured.boardData.phase).toBe('gather'); // reset, not 'closed'
+      expect(captured.boardData.votesPerUser).toBe(5);
+      expect(captured.boardData.backgroundImage).toEqual({
+        url: 'https://example.com/bg.jpg',
+        opacity: 80,
+        displayMode: 'cover',
+      });
+    });
+
+    it('copies all lanes with their title/order/icon/color/position', async () => {
+      mockPrisma.poll.findFirst.mockResolvedValue(makeRetroOriginal());
+      const captured: { boardData?: any; laneData?: any } = {};
+      mockRetroTransaction(captured);
+
+      await pollService.clonePoll('retro-original', MOCK_USER_ID);
+
+      expect(captured.laneData).toHaveLength(2);
+      expect(captured.laneData[0]).toMatchObject({
+        boardId: 'board-clone',
+        title: 'Start',
+        displayOrder: 0,
+        icon: '🚀',
+        color: '#0a0',
+      });
+      expect(captured.laneData[1]).toMatchObject({
+        boardId: 'board-clone',
+        title: 'Stop',
+        displayOrder: 1,
+        position: { x: 1, y: 2, width: 3, height: 4 },
+      });
+    });
+
+    it('logs a RETRO_BOARD_CREATED audit entry referencing the source board', async () => {
+      mockPrisma.poll.findFirst.mockResolvedValue(makeRetroOriginal());
+      mockRetroTransaction({});
+
+      await pollService.clonePoll('retro-original', MOCK_USER_ID);
+
+      expect(auditLogger.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          pollId: 'retro-clone',
+          action: 'RETRO_BOARD_CREATED',
+          actor: MOCK_USER_ID,
+          metadata: expect.objectContaining({
+            boardId: 'board-clone',
+            clonedFromBoardId: 'board-original',
+            laneCount: 2,
+          }),
+        }),
+        expect.anything(),
+      );
+    });
+
+    it('does not create a retro board for a pulse poll', async () => {
+      const pulsePoll = {
+        id: 'pulse-1',
+        title: 'Pulse',
+        description: null,
+        backgroundImageUrl: null,
+        facilitatorState: {},
+        type: 'pulse',
+        teamId: null,
+        isDeleted: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userId: MOCK_USER_ID,
+        questions: [],
+        retroBoard: null,
+      };
+      mockPrisma.poll.findFirst.mockResolvedValue(pulsePoll);
+
+      let retroBoardCreateCalled = false;
+      mockPrisma.$transaction.mockImplementation(async (fn: any) => {
+        const tx = {
+          poll: { create: vi.fn().mockResolvedValue({ id: 'pulse-clone', title: 'Pulse (Copy)' }) },
+          question: { createMany: vi.fn() },
+          retroBoard: {
+            create: vi.fn().mockImplementation(() => {
+              retroBoardCreateCalled = true;
+              return {};
+            }),
+          },
+          retroLane: { createMany: vi.fn() },
+          auditLog: { create: vi.fn() },
+        };
+        return fn(tx);
+      });
+
+      await pollService.clonePoll('pulse-1', MOCK_USER_ID);
+
+      expect(retroBoardCreateCalled).toBe(false);
     });
   });
 
