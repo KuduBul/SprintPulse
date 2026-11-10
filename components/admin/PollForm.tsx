@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, FormEvent } from 'react';
+import { useState, useRef, useEffect, FormEvent } from 'react';
 import { isAllowedImageType, isAllowedImageSize } from '@/lib/validators/imageValidator';
 import { TeamSelector } from './TeamSelector';
 
@@ -46,6 +46,16 @@ export function PollForm({ initialData, onSubmit, submitLabel, isEdit = false, h
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const errorBannerRef = useRef<HTMLDivElement>(null);
+
+  // When a submit error appears, bring the banner into view. The Save button
+  // can sit far below the form on a long edit page, so a failure would
+  // otherwise scroll off-screen and read as "nothing happened".
+  useEffect(() => {
+    if (submitError && errorBannerRef.current) {
+      errorBannerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [submitError]);
 
   function validate(): FieldErrors {
     const fieldErrors: FieldErrors = {};
@@ -111,6 +121,7 @@ export function PollForm({ initialData, onSubmit, submitLabel, isEdit = false, h
     <form id={formId} onSubmit={handleSubmit} noValidate>
       {submitError && (
         <div
+          ref={errorBannerRef}
           role="alert"
           style={{
             padding: 'var(--space-3)',

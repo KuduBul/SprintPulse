@@ -26,6 +26,23 @@ export default function AdminPollsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterTeamId, setFilterTeamId] = useState<string>('');
+  const [justSaved, setJustSaved] = useState(false);
+
+  // Show a brief confirmation when arriving from a successful edit save
+  // (edit page redirects here with ?saved=1). Read from the URL directly and
+  // then strip the flag so it doesn't persist on refresh. Using the URL
+  // (rather than useSearchParams) avoids the App Router Suspense requirement.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('saved') === '1') {
+      setJustSaved(true);
+      // Clean the URL without adding a history entry.
+      window.history.replaceState(null, '', '/admin');
+      const timer = setTimeout(() => setJustSaved(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -127,6 +144,23 @@ export default function AdminPollsPage() {
 
   return (
     <section aria-label="Poll list">
+      {justSaved && (
+        <div
+          role="status"
+          style={{
+            padding: 'var(--space-3)',
+            marginBottom: 'var(--space-4)',
+            backgroundColor: 'var(--color-success-50)',
+            border: '1px solid var(--color-success-300)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--color-success-800)',
+            fontSize: 'var(--font-size-sm)',
+            fontWeight: 'var(--font-weight-medium)',
+          }}
+        >
+          Changes saved.
+        </div>
+      )}
       <div
         style={{
           display: 'flex',
