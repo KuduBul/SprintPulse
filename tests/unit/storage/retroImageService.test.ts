@@ -9,7 +9,7 @@ const mockFrom = vi.fn(() => ({
   getPublicUrl: mockGetPublicUrl,
   remove: mockRemove,
 }));
-const mockCreateClient = vi.fn(() => ({
+const mockCreateClient = vi.fn((..._args: unknown[]) => ({
   storage: { from: mockFrom },
 }));
 

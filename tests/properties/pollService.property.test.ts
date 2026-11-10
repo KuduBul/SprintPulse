@@ -284,7 +284,7 @@ describe('Feature: multi-tenant-facilitator-auth, Property 4: Poll listing isola
           });
 
           // Mock prisma.poll.findMany to simulate the WHERE clause
-          vi.mocked(prisma.poll.findMany).mockImplementation(async (args: any) => {
+          (vi.mocked(prisma.poll.findMany).mockImplementation as any)(async (args: any) => {
             const where = args?.where ?? {};
             return allPolls.filter((poll) => {
               if (where.userId && poll.userId !== where.userId) return false;
@@ -339,7 +339,7 @@ describe('Feature: multi-tenant-facilitator-auth, Property 4: Poll listing isola
             allPolls.push(arbPollRecord(userIdB));
           }
 
-          vi.mocked(prisma.poll.findMany).mockImplementation(async (args: any) => {
+          (vi.mocked(prisma.poll.findMany).mockImplementation as any)(async (args: any) => {
             const where = args?.where ?? {};
             return allPolls.filter((poll) => {
               if (where.userId && poll.userId !== where.userId) return false;
@@ -410,7 +410,7 @@ describe('Feature: multi-tenant-facilitator-auth, Property 5: Non-owner access d
 
           // Mock findFirst to simulate ownership check:
           // returns the poll only when userId matches the owner
-          vi.mocked(prisma.poll.findFirst).mockImplementation(async (args: any) => {
+          (vi.mocked(prisma.poll.findFirst).mockImplementation as any)(async (args: any) => {
             const where = args?.where ?? {};
             if (where.id === pollId && where.userId === ownerUserId && where.isDeleted === false) {
               return arbPollRecord(ownerUserId);
@@ -443,7 +443,7 @@ describe('Feature: multi-tenant-facilitator-auth, Property 5: Non-owner access d
         async (ownerUserId, nonOwnerUserId, pollId) => {
           fc.pre(ownerUserId !== nonOwnerUserId);
 
-          vi.mocked(prisma.poll.findFirst).mockImplementation(async (args: any) => {
+          (vi.mocked(prisma.poll.findFirst).mockImplementation as any)(async (args: any) => {
             const where = args?.where ?? {};
             if (where.id === pollId && where.userId === ownerUserId && where.isDeleted === false) {
               return arbPollRecord(ownerUserId);
@@ -476,7 +476,7 @@ describe('Feature: multi-tenant-facilitator-auth, Property 5: Non-owner access d
         async (ownerUserId, nonOwnerUserId, pollId) => {
           fc.pre(ownerUserId !== nonOwnerUserId);
 
-          vi.mocked(prisma.poll.findFirst).mockImplementation(async (args: any) => {
+          (vi.mocked(prisma.poll.findFirst).mockImplementation as any)(async (args: any) => {
             const where = args?.where ?? {};
             if (where.id === pollId && where.userId === ownerUserId && where.isDeleted === false) {
               return arbPollRecord(ownerUserId);
@@ -509,7 +509,7 @@ describe('Feature: multi-tenant-facilitator-auth, Property 5: Non-owner access d
         async (ownerUserId, nonOwnerUserId, pollId) => {
           fc.pre(ownerUserId !== nonOwnerUserId);
 
-          vi.mocked(prisma.poll.findFirst).mockImplementation(async (args: any) => {
+          (vi.mocked(prisma.poll.findFirst).mockImplementation as any)(async (args: any) => {
             const where = args?.where ?? {};
             if (where.id === pollId && where.userId === ownerUserId && where.isDeleted === false) {
               return arbPollRecord(ownerUserId);
@@ -542,7 +542,7 @@ describe('Feature: multi-tenant-facilitator-auth, Property 5: Non-owner access d
         async (ownerUserId, nonOwnerUserId, pollId) => {
           fc.pre(ownerUserId !== nonOwnerUserId);
 
-          vi.mocked(prisma.poll.findFirst).mockImplementation(async (args: any) => {
+          (vi.mocked(prisma.poll.findFirst).mockImplementation as any)(async (args: any) => {
             const where = args?.where ?? {};
             if (where.id === pollId && where.userId === ownerUserId && where.isDeleted === false) {
               return arbPollRecord(ownerUserId);
@@ -575,7 +575,7 @@ describe('Feature: multi-tenant-facilitator-auth, Property 5: Non-owner access d
         async (ownerUserId, nonOwnerUserId, pollId) => {
           fc.pre(ownerUserId !== nonOwnerUserId);
 
-          vi.mocked(prisma.poll.findFirst).mockImplementation(async (args: any) => {
+          (vi.mocked(prisma.poll.findFirst).mockImplementation as any)(async (args: any) => {
             const where = args?.where ?? {};
             if (where.id === pollId && where.userId === ownerUserId && where.isDeleted === false) {
               return { ...arbPollRecord(ownerUserId), id: pollId, questions: [] };

@@ -136,7 +136,7 @@ describe('Route Auth Integration: Protected routes return 401 without auth', () 
     const { GET } = await import('@/app/api/polls/[id]/route');
     const response = await GET(
       new Request('http://localhost/api/polls/123'),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -152,7 +152,7 @@ describe('Route Auth Integration: Protected routes return 401 without auth', () 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: 'Updated' }),
       }),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -164,7 +164,7 @@ describe('Route Auth Integration: Protected routes return 401 without auth', () 
     const { DELETE } = await import('@/app/api/polls/[id]/route');
     const response = await DELETE(
       new Request('http://localhost/api/polls/123', { method: 'DELETE' }),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -176,7 +176,7 @@ describe('Route Auth Integration: Protected routes return 401 without auth', () 
     const { POST } = await import('@/app/api/polls/[id]/clone/route');
     const response = await POST(
       new Request('http://localhost/api/polls/123/clone', { method: 'POST' }),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -188,7 +188,7 @@ describe('Route Auth Integration: Protected routes return 401 without auth', () 
     const { POST } = await import('@/app/api/polls/[id]/reset/route');
     const response = await POST(
       new Request('http://localhost/api/polls/123/reset', { method: 'POST' }),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -200,7 +200,7 @@ describe('Route Auth Integration: Protected routes return 401 without auth', () 
     const { GET } = await import('@/app/api/polls/[id]/facilitator/route');
     const response = await GET(
       new Request('http://localhost/api/polls/123/facilitator'),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -216,7 +216,7 @@ describe('Route Auth Integration: Protected routes return 401 without auth', () 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ votingOpen: true }),
       }),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -232,7 +232,7 @@ describe('Route Auth Integration: Protected routes return 401 without auth', () 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: 'Question?', options: ['A', 'B'], displayOrder: 0 }),
       }),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -255,7 +255,7 @@ describe('Route Auth Integration: Protected routes return 404 for wrong owner', 
 
     const response = await GET(
       new Request('http://localhost/api/polls/123'),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -274,7 +274,7 @@ describe('Route Auth Integration: Protected routes return 404 for wrong owner', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: 'Hacked Title' }),
       }),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -289,7 +289,7 @@ describe('Route Auth Integration: Protected routes return 404 for wrong owner', 
 
     const response = await DELETE(
       new Request('http://localhost/api/polls/123', { method: 'DELETE' }),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -304,7 +304,7 @@ describe('Route Auth Integration: Protected routes return 404 for wrong owner', 
 
     const response = await POST(
       new Request('http://localhost/api/polls/123/clone', { method: 'POST' }),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -319,7 +319,7 @@ describe('Route Auth Integration: Protected routes return 404 for wrong owner', 
 
     const response = await POST(
       new Request('http://localhost/api/polls/123/reset', { method: 'POST' }),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -334,7 +334,7 @@ describe('Route Auth Integration: Protected routes return 404 for wrong owner', 
 
     const response = await GET(
       new Request('http://localhost/api/polls/123/facilitator'),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -353,7 +353,7 @@ describe('Route Auth Integration: Protected routes return 404 for wrong owner', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ votingOpen: true }),
       }),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -372,7 +372,7 @@ describe('Route Auth Integration: Protected routes return 404 for wrong owner', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: 'Question?', options: ['A', 'B'], displayOrder: 0 }),
       }),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -395,7 +395,7 @@ describe('Route Auth Integration: Public routes work without auth', () => {
 
     const response = await GET(
       new Request('http://localhost/api/polls/123/public'),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -418,7 +418,7 @@ describe('Route Auth Integration: Public routes work without auth', () => {
           isTest: false,
         }),
       }),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 
@@ -443,7 +443,7 @@ describe('Route Auth Integration: Public routes work without auth', () => {
 
     const response = await GET(
       new Request('http://localhost/api/polls/123/results/public'),
-      { params: { id: mockPoll.id } }
+      { params: Promise.resolve({ id: mockPoll.id }) }
     );
     const body = await response.json();
 

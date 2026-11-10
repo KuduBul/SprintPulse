@@ -68,6 +68,10 @@ function createRequest(url = 'http://localhost/api/polls/123/results'): Request 
 }
 
 describe('app/api/polls/[id]/results/route.ts (Admin)', () => {
+  // Admin route is wrapped in `withAuth`, which (in production) resolves the
+  // Promise params before the handler runs. The mocked withAuth passes context
+  // straight through and the handler reads `context.params` synchronously, so
+  // the test supplies a plain params object.
   const context = { params: { id: mockPoll.id } };
 
   beforeEach(() => {
@@ -152,7 +156,7 @@ describe('app/api/polls/[id]/results/route.ts (Admin)', () => {
 });
 
 describe('app/api/polls/[id]/results/public/route.ts (Public)', () => {
-  const context = { params: { id: mockPoll.id } };
+  const context = { params: Promise.resolve({ id: mockPoll.id }) };
 
   beforeEach(() => {
     vi.clearAllMocks();

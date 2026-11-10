@@ -46,6 +46,7 @@ function createCard(overrides: Partial<BoardCardView> = {}): BoardCardView {
     authorName: null,
     isOwn: false,
     voteCount: 0,
+    hasVoted: false,
     createdAt: new Date('2024-01-01T10:00:00Z'),
     ...overrides,
   };

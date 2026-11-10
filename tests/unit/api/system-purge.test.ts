@@ -32,7 +32,7 @@ describe('app/api/system/purge/route.ts', () => {
       };
       vi.mocked(retentionService.purge).mockResolvedValue(mockResult);
 
-      const response = await POST();
+      const response = await POST(new Request('http://localhost/api/system/purge', { method: 'POST' }));
       const body = await response.json();
 
       expect(response.status).toBe(200);
@@ -49,7 +49,7 @@ describe('app/api/system/purge/route.ts', () => {
       };
       vi.mocked(retentionService.purge).mockResolvedValue(mockResult);
 
-      const response = await POST();
+      const response = await POST(new Request('http://localhost/api/system/purge', { method: 'POST' }));
       const body = await response.json();
 
       expect(response.status).toBe(200);
@@ -60,7 +60,7 @@ describe('app/api/system/purge/route.ts', () => {
       const { POST } = await import('@/app/api/system/purge/route');
       vi.mocked(retentionService.purge).mockRejectedValue(new Error('DB connection failed'));
 
-      const response = await POST();
+      const response = await POST(new Request('http://localhost/api/system/purge', { method: 'POST' }));
       const body = await response.json();
 
       expect(response.status).toBe(500);

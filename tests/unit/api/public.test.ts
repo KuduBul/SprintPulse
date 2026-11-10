@@ -42,7 +42,7 @@ describe('app/api/polls/[id]/public/route.ts', () => {
       const { GET } = await import('@/app/api/polls/[id]/public/route');
       vi.mocked(pollService.getPublicPoll).mockResolvedValue(mockPublicPoll as any);
 
-      const context = { params: { id: mockPublicPoll.id } };
+      const context = { params: Promise.resolve({ id: mockPublicPoll.id }) };
       const response = await GET(new Request('http://localhost/api/polls/123/public'), context);
       const body = await response.json();
 
@@ -57,7 +57,7 @@ describe('app/api/polls/[id]/public/route.ts', () => {
       const { GET } = await import('@/app/api/polls/[id]/public/route');
       vi.mocked(pollService.getPublicPoll).mockResolvedValue(null);
 
-      const context = { params: { id: 'nonexistent-id' } };
+      const context = { params: Promise.resolve({ id: 'nonexistent-id' }) };
       const response = await GET(new Request('http://localhost/api/polls/nonexistent/public'), context);
       const body = await response.json();
 
@@ -69,7 +69,7 @@ describe('app/api/polls/[id]/public/route.ts', () => {
       const { GET } = await import('@/app/api/polls/[id]/public/route');
       vi.mocked(pollService.getPublicPoll).mockResolvedValue(null);
 
-      const context = { params: { id: 'deleted-poll-id' } };
+      const context = { params: Promise.resolve({ id: 'deleted-poll-id' }) };
       const response = await GET(new Request('http://localhost/api/polls/deleted/public'), context);
       const body = await response.json();
 
@@ -81,7 +81,7 @@ describe('app/api/polls/[id]/public/route.ts', () => {
       const { GET } = await import('@/app/api/polls/[id]/public/route');
       vi.mocked(pollService.getPublicPoll).mockRejectedValue(new Error('DB error'));
 
-      const context = { params: { id: mockPublicPoll.id } };
+      const context = { params: Promise.resolve({ id: mockPublicPoll.id }) };
       const response = await GET(new Request('http://localhost/api/polls/123/public'), context);
       const body = await response.json();
 
@@ -94,7 +94,7 @@ describe('app/api/polls/[id]/public/route.ts', () => {
       vi.mocked(pollService.getPublicPoll).mockResolvedValue(mockPublicPoll as any);
 
       // No admin token header — should still succeed
-      const context = { params: { id: mockPublicPoll.id } };
+      const context = { params: Promise.resolve({ id: mockPublicPoll.id }) };
       const response = await GET(
         new Request('http://localhost/api/polls/123/public'),
         context

@@ -317,7 +317,7 @@ describe('Integration: Poll CRUD API Routes', () => {
     it('resets all responses for a poll', async () => {
       const { POST } = await import('@/app/api/polls/[id]/reset/route');
       vi.mocked(pollService.getPoll).mockResolvedValue({ id: 'poll-1' } as any);
-      vi.mocked(pollService.resetResponses).mockResolvedValue(undefined);
+      vi.mocked(pollService.resetResponses).mockResolvedValue(true);
 
       const response = await POST(
         createRequest('/api/polls/poll-1/reset', { method: 'POST' }),

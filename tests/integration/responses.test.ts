@@ -208,7 +208,7 @@ describe('Integration: Response Submission API Routes', () => {
 
       const response = await GET(
         createRequest('/api/polls/poll-1/public'),
-        { params: { id: 'poll-1' } }
+        { params: Promise.resolve({ id: 'poll-1' }) }
       );
       const body = await response.json();
 
@@ -223,7 +223,7 @@ describe('Integration: Response Submission API Routes', () => {
 
       const response = await GET(
         createRequest('/api/polls/nonexistent/public'),
-        { params: { id: 'nonexistent' } }
+        { params: Promise.resolve({ id: 'nonexistent' }) }
       );
       const body = await response.json();
 
@@ -251,7 +251,7 @@ describe('Integration: Response Submission API Routes', () => {
 
       const response = await GET(
         createRequest('/api/polls/poll-1/results/public'),
-        { params: { id: 'poll-1' } }
+        { params: Promise.resolve({ id: 'poll-1' }) }
       );
       const body = await response.json();
 
@@ -270,7 +270,7 @@ describe('Integration: Response Submission API Routes', () => {
 
       const response = await GET(
         createRequest('/api/polls/nonexistent/results/public'),
-        { params: { id: 'nonexistent' } }
+        { params: Promise.resolve({ id: 'nonexistent' }) }
       );
       const body = await response.json();
 

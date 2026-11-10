@@ -16,6 +16,7 @@ function createCard(overrides: Partial<BoardCardView> = {}): BoardCardView {
     authorName: null,
     isOwn: false,
     voteCount: 0,
+    hasVoted: false,
     createdAt: new Date('2024-01-01T10:00:00Z'),
     ...overrides,
   };
@@ -128,7 +129,7 @@ describe('RetroBoardView - Desktop', () => {
     render(<RetroBoardView board={board} backgroundImageUrl="https://example.com/bg.jpg" />);
     const region = screen.getByRole('region', { name: 'Retro board' });
     // Background image is now rendered as a separate layer div inside the region
-    const bgLayer = region.querySelector('[aria-hidden="true"]');
+    const bgLayer = region.querySelector<HTMLElement>('[aria-hidden="true"]');
     expect(bgLayer).not.toBeNull();
     expect(bgLayer!.style.backgroundImage).toContain('https://example.com/bg.jpg');
   });

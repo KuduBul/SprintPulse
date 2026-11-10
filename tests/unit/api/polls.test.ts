@@ -328,7 +328,7 @@ describe('app/api/polls/[id]/reset/route.ts', () => {
     it('resets responses for a poll', async () => {
       const { POST } = await import('@/app/api/polls/[id]/reset/route');
       vi.mocked(pollService.getPoll).mockResolvedValue(mockPoll as any);
-      vi.mocked(pollService.resetResponses).mockResolvedValue(undefined);
+      vi.mocked(pollService.resetResponses).mockResolvedValue(true);
 
       const response = await POST(new Request('http://localhost/api/polls/123/reset', { method: 'POST' }), context);
       const body = await response.json();

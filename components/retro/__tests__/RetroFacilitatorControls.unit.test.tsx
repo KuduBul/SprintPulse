@@ -51,6 +51,7 @@ function createBoardView(overrides: Partial<BoardView> = {}): BoardView {
             authorName: 'Alice',
             isOwn: false,
             voteCount: 1,
+            hasVoted: false,
             createdAt: new Date('2024-01-01T10:00:00Z'),
           },
           {
@@ -61,6 +62,7 @@ function createBoardView(overrides: Partial<BoardView> = {}): BoardView {
             authorName: 'Bob',
             isOwn: false,
             voteCount: 3,
+            hasVoted: false,
             createdAt: new Date('2024-01-01T10:01:00Z'),
           },
         ],
@@ -82,6 +84,7 @@ function createBoardView(overrides: Partial<BoardView> = {}): BoardView {
             authorName: 'Alice',
             isOwn: false,
             voteCount: 0,
+            hasVoted: false,
             createdAt: new Date('2024-01-01T10:02:00Z'),
           },
         ],

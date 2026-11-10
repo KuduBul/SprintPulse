@@ -173,7 +173,7 @@ describe('Bug 2 Exploration: Save button should be AFTER Questions and Canvas', 
 
   it('Save/Submit button appears after the Questions section and Canvas in DOM order', async () => {
     // Dynamic import to avoid hoisting issues with mocks
-    const { default: EditPollPage } = await import('@/app/admin/polls/[id]/edit/page.tsx');
+    const { default: EditPollPage } = await import('@/app/admin/polls/[id]/edit/page');
 
     const { container } = render(<EditPollPage />);
 

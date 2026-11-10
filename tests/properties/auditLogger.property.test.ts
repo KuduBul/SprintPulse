@@ -25,6 +25,10 @@ vi.mock('../../lib/db/client', () => ({
 import { prisma } from '../../lib/db/client';
 
 const mockedPrisma = vi.mocked(prisma);
+// Prisma's `create` is a heavily-overloaded generic function, so accessing
+// mock helpers (`.mockResolvedValue`, `.mock`) directly off the typed client
+// doesn't resolve. Wrap it with `vi.mocked` to get a properly-typed mock.
+const mockAuditLogCreate = vi.mocked(prisma.auditLog.create);
 
 // ─── Arbitraries ─────────────────────────────────────────────────────────────
 
@@ -71,7 +75,7 @@ const arbMetadata = fc.oneof(
 describe('Feature: multi-tenant-facilitator-auth, Property 7: Audit log records authenticated actor identity', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.auditLog.create.mockResolvedValue({
+    mockAuditLogCreate.mockResolvedValue({
       id: 'mock-id',
       pollId: null,
       action: '',
@@ -96,7 +100,7 @@ describe('Feature: multi-tenant-facilitator-auth, Property 7: Audit log records 
         arbMetadata,
         async (userId, action, pollId, metadata) => {
           vi.clearAllMocks();
-          mockedPrisma.auditLog.create.mockResolvedValue({
+          mockAuditLogCreate.mockResolvedValue({
             id: 'mock-id',
             pollId,
             action,
@@ -117,8 +121,8 @@ describe('Feature: multi-tenant-facilitator-auth, Property 7: Audit log records 
           await logger.log(entry);
 
           // Verify prisma.auditLog.create was called with the exact userId as actor
-          expect(mockedPrisma.auditLog.create).toHaveBeenCalledTimes(1);
-          const createCall = mockedPrisma.auditLog.create.mock.calls[0][0];
+          expect(mockAuditLogCreate).toHaveBeenCalledTimes(1);
+          const createCall = mockAuditLogCreate.mock.calls[0][0];
           expect(createCall.data.actor).toBe(userId);
           // The actor must NOT be a generic value
           expect(createCall.data.actor).not.toBe('admin');
