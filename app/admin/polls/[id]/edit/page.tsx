@@ -119,6 +119,9 @@ export default function EditPollPage() {
     }
     if (result.data) setPoll(result.data as PollData);
 
+    // On a successful save, return the user to the Sessions list. Staying on
+    // the edit page gave no indication the save worked, which read as a failure.
+    router.push('/admin');
   }
 
   function resetQuestionForm() {
