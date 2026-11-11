@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { ResponsivePollCanvas } from '@/components/canvas/ResponsivePollCanvas';
 
 // --------------------------------------------------------------------------
@@ -193,7 +193,12 @@ describe('ResponsivePollCanvas', () => {
         src: '',
       };
 
-      vi.spyOn(globalThis, 'Image').mockImplementation(() => mockImage as any);
+      // Must be a constructable function (not an arrow) — the component calls
+      // `new Image()`, and vitest 4 enforces that mocked constructors use
+      // `function`/`class` rather than an arrow implementation.
+      vi.spyOn(globalThis, 'Image').mockImplementation(function (this: unknown) {
+        return mockImage as any;
+      } as any);
 
       render(
         <ResponsivePollCanvas
@@ -202,10 +207,14 @@ describe('ResponsivePollCanvas', () => {
         />
       );
 
-      // Trigger the error callback
-      if (mockImage.onerror) {
-        mockImage.onerror();
-      }
+      // Trigger the error callback. Wrap in act() so the resulting React state
+      // update is flushed inside React's lifecycle — vitest 4 surfaces
+      // out-of-act updates as unhandled errors (vitest 3 tolerated them).
+      act(() => {
+        if (mockImage.onerror) {
+          mockImage.onerror();
+        }
+      });
 
       // Wait for state update
       await vi.waitFor(() => {

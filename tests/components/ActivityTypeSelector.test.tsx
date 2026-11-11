@@ -25,8 +25,11 @@ describe('ActivityTypeSelector', () => {
 
   let activityType: ActivityType;
   let retroConfig: RetroConfig;
-  let onActivityTypeChange: ReturnType<typeof vi.fn>;
-  let onRetroConfigChange: ReturnType<typeof vi.fn>;
+  // Typed as the component's callback signatures. vitest 4's Mock type no
+  // longer flows the inline arg types to the assignment target, so annotate
+  // explicitly to satisfy the component props.
+  let onActivityTypeChange: (type: ActivityType) => void;
+  let onRetroConfigChange: (config: RetroConfig) => void;
 
   beforeEach(() => {
     vi.clearAllMocks();
