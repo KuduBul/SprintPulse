@@ -8,7 +8,8 @@
         "execute_sql",
         "search_docs",
         "list_migrations",
-        "apply_migration"
+        "apply_migration",
+        "get_advisors"
       ]
     },
     "playwright": {
