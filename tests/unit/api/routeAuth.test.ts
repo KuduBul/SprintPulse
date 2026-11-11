@@ -123,7 +123,7 @@ describe('Route Auth Integration: Protected routes return 401 without auth', () 
       new Request('http://localhost/api/polls', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Test', teamId: '00000000-0000-0000-0000-000000000001' }),
+        body: JSON.stringify({ title: 'Test', teamId: '00000000-0000-4000-8000-000000000001' }),
       })
     );
     const body = await response.json();

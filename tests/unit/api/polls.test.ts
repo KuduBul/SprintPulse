@@ -94,7 +94,7 @@ describe('app/api/polls/route.ts', () => {
       const { POST } = await import('@/app/api/polls/route');
       vi.mocked(pollService.createPoll).mockResolvedValue(mockPoll as any);
 
-      const response = await POST(createRequest({ title: 'Test Poll', description: 'A test poll', teamId: '00000000-0000-0000-0000-000000000001' }));
+      const response = await POST(createRequest({ title: 'Test Poll', description: 'A test poll', teamId: '00000000-0000-4000-8000-000000000001' }));
       const body = await response.json();
 
       expect(response.status).toBe(201);
@@ -105,7 +105,7 @@ describe('app/api/polls/route.ts', () => {
       const { POST } = await import('@/app/api/polls/route');
       vi.mocked(pollService.createPoll).mockResolvedValue(mockPoll as any);
 
-      const response = await POST(createRequest({ title: 'Test Poll', teamId: '00000000-0000-0000-0000-000000000001' }));
+      const response = await POST(createRequest({ title: 'Test Poll', teamId: '00000000-0000-4000-8000-000000000001' }));
 
       expect(response.status).toBe(201);
     });
@@ -113,7 +113,7 @@ describe('app/api/polls/route.ts', () => {
     it('returns 400 for missing title', async () => {
       const { POST } = await import('@/app/api/polls/route');
 
-      const response = await POST(createRequest({ teamId: '00000000-0000-0000-0000-000000000001' }));
+      const response = await POST(createRequest({ teamId: '00000000-0000-4000-8000-000000000001' }));
       const body = await response.json();
 
       expect(response.status).toBe(400);
@@ -128,7 +128,7 @@ describe('app/api/polls/route.ts', () => {
     it('returns 400 for title exceeding 200 chars', async () => {
       const { POST } = await import('@/app/api/polls/route');
 
-      const response = await POST(createRequest({ title: 'a'.repeat(201), teamId: '00000000-0000-0000-0000-000000000001' }));
+      const response = await POST(createRequest({ title: 'a'.repeat(201), teamId: '00000000-0000-4000-8000-000000000001' }));
       const body = await response.json();
 
       expect(response.status).toBe(400);
@@ -138,7 +138,7 @@ describe('app/api/polls/route.ts', () => {
     it('returns 400 for description exceeding 1000 chars', async () => {
       const { POST } = await import('@/app/api/polls/route');
 
-      const response = await POST(createRequest({ title: 'Valid', description: 'a'.repeat(1001), teamId: '00000000-0000-0000-0000-000000000001' }));
+      const response = await POST(createRequest({ title: 'Valid', description: 'a'.repeat(1001), teamId: '00000000-0000-4000-8000-000000000001' }));
       const body = await response.json();
 
       expect(response.status).toBe(400);
@@ -149,7 +149,7 @@ describe('app/api/polls/route.ts', () => {
       const { POST } = await import('@/app/api/polls/route');
       vi.mocked(pollService.createPoll).mockRejectedValue(new Error('DB error'));
 
-      const response = await POST(createRequest({ title: 'Test', teamId: '00000000-0000-0000-0000-000000000001' }));
+      const response = await POST(createRequest({ title: 'Test', teamId: '00000000-0000-4000-8000-000000000001' }));
       const body = await response.json();
 
       expect(response.status).toBe(500);

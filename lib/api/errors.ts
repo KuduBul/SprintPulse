@@ -17,7 +17,10 @@ export interface ApiError {
  */
 export function formatZodError(
   zodError: ZodError
-): Array<{ path: (string | number)[]; message: string }> {
+): Array<{ path: PropertyKey[]; message: string }> {
+  // Zod v4 types `issue.path` as `PropertyKey[]` (string | number | symbol).
+  // In practice object/array paths are strings/numbers; the wider type just
+  // mirrors the source so the mapping type-checks.
   return zodError.issues.map((issue) => ({
     path: issue.path,
     message: issue.message,

@@ -11,7 +11,7 @@ import {
 } from '@/lib/validators/schemas';
 
 describe('CreatePollSchema', () => {
-  const validTeamId = '00000000-0000-0000-0000-000000000001';
+  const validTeamId = '00000000-0000-4000-8000-000000000001';
 
   it('accepts a valid poll with title and teamId', () => {
     const result = CreatePollSchema.safeParse({ title: 'My Poll', teamId: validTeamId });

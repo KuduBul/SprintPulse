@@ -107,7 +107,7 @@ describe('Retro API Routes', () => {
     it('POST /api/retro/[boardId]/cards returns 404 when flag is off', async () => {
       const { POST } = await import('@/app/api/retro/[boardId]/cards/route');
       const request = createRequest('http://localhost/api/retro/board-1/cards', {
-        laneId: '00000000-0000-0000-0000-000000000001',
+        laneId: '00000000-0000-4000-8000-000000000001',
         authorToken: 'tok-1',
         authorName: 'Alice',
         text: 'Some card',
@@ -156,7 +156,7 @@ describe('Retro API Routes', () => {
     it('POST /api/retro/[boardId]/votes returns 404 when flag is off', async () => {
       const { POST } = await import('@/app/api/retro/[boardId]/votes/route');
       const request = createRequest('http://localhost/api/retro/board-1/votes', {
-        cardId: '00000000-0000-0000-0000-000000000001',
+        cardId: '00000000-0000-4000-8000-000000000001',
         voterToken: 'tok-1',
       });
       const context = { params: { boardId: 'board-1' } };
@@ -172,7 +172,7 @@ describe('Retro API Routes', () => {
       const { DELETE } = await import('@/app/api/retro/[boardId]/votes/route');
       const request = createRequest(
         'http://localhost/api/retro/board-1/votes',
-        { cardId: '00000000-0000-0000-0000-000000000001', voterToken: 'tok-1' },
+        { cardId: '00000000-0000-4000-8000-000000000001', voterToken: 'tok-1' },
         'DELETE'
       );
       const context = { params: { boardId: 'board-1' } };
@@ -213,7 +213,7 @@ describe('Retro API Routes', () => {
       );
 
       const request = createRequest('http://localhost/api/retro/board-1/cards', {
-        laneId: '00000000-0000-0000-0000-000000000001',
+        laneId: '00000000-0000-4000-8000-000000000001',
         authorToken: 'tok-1',
         authorName: 'Alice',
         text: 'Card during vote phase',
@@ -274,7 +274,7 @@ describe('Retro API Routes', () => {
       );
 
       const request = createRequest('http://localhost/api/retro/board-1/votes', {
-        cardId: '00000000-0000-0000-0000-000000000001',
+        cardId: '00000000-0000-4000-8000-000000000001',
         voterToken: 'tok-1',
       });
       const context = { params: { boardId: 'board-1' } };
@@ -294,7 +294,7 @@ describe('Retro API Routes', () => {
 
       const request = createRequest(
         'http://localhost/api/retro/board-1/votes',
-        { cardId: '00000000-0000-0000-0000-000000000001', voterToken: 'tok-1' },
+        { cardId: '00000000-0000-4000-8000-000000000001', voterToken: 'tok-1' },
         'DELETE'
       );
       const context = { params: { boardId: 'board-1' } };
@@ -339,7 +339,7 @@ describe('Retro API Routes', () => {
       );
 
       const request = createRequest('http://localhost/api/retro/board-1/votes', {
-        cardId: '00000000-0000-0000-0000-000000000001',
+        cardId: '00000000-0000-4000-8000-000000000001',
         voterToken: 'tok-1',
       });
       const context = { params: { boardId: 'board-1' } };
@@ -411,7 +411,7 @@ describe('Retro API Routes', () => {
       const { POST } = await import('@/app/api/retro/[boardId]/cards/route');
 
       const request = createRequest('http://localhost/api/retro/board-1/cards', {
-        laneId: '00000000-0000-0000-0000-000000000001',
+        laneId: '00000000-0000-4000-8000-000000000001',
         authorToken: 'tok-1',
         authorName: 'Alice',
         text: '',
@@ -446,7 +446,7 @@ describe('Retro API Routes', () => {
       const { POST } = await import('@/app/api/retro/[boardId]/cards/route');
 
       const request = createRequest('http://localhost/api/retro/board-1/cards', {
-        laneId: '00000000-0000-0000-0000-000000000001',
+        laneId: '00000000-0000-4000-8000-000000000001',
         authorName: 'Alice',
         text: 'Valid text',
       });
@@ -545,7 +545,7 @@ describe('Retro API Routes', () => {
       const { POST } = await import('@/app/api/retro/[boardId]/votes/route');
 
       const request = createRequest('http://localhost/api/retro/board-1/votes', {
-        cardId: '00000000-0000-0000-0000-000000000001',
+        cardId: '00000000-0000-4000-8000-000000000001',
       });
       const context = { params: { boardId: 'board-1' } };
 
@@ -604,7 +604,7 @@ describe('Retro API Routes', () => {
       const { POST } = await import('@/app/api/retro/[boardId]/cards/route');
       mockRetroService.addCard.mockResolvedValue({
         id: 'card-1',
-        laneId: '00000000-0000-0000-0000-000000000001',
+        laneId: '00000000-0000-4000-8000-000000000001',
         text: 'Participant card',
         authorToken: 'participant-tok',
         authorName: 'Bob',
@@ -612,7 +612,7 @@ describe('Retro API Routes', () => {
       });
 
       const request = createRequest('http://localhost/api/retro/board-1/cards', {
-        laneId: '00000000-0000-0000-0000-000000000001',
+        laneId: '00000000-0000-4000-8000-000000000001',
         authorToken: 'participant-tok',
         authorName: 'Bob',
         text: 'Participant card',
@@ -629,7 +629,7 @@ describe('Retro API Routes', () => {
       mockRetroService.castVote.mockResolvedValue(undefined);
 
       const request = createRequest('http://localhost/api/retro/board-1/votes', {
-        cardId: '00000000-0000-0000-0000-000000000001',
+        cardId: '00000000-0000-4000-8000-000000000001',
         voterToken: 'participant-tok',
       });
       const response = await POST(request, { params: { boardId: 'board-1' } });
@@ -642,7 +642,7 @@ describe('Retro API Routes', () => {
       const { PATCH } = await import('@/app/api/retro/[boardId]/cards/[cardId]/route');
       mockRetroService.editCard.mockResolvedValue({
         id: 'card-1',
-        laneId: '00000000-0000-0000-0000-000000000001',
+        laneId: '00000000-0000-4000-8000-000000000001',
         text: 'Edited',
         authorToken: 'participant-tok',
         authorName: 'Bob',
